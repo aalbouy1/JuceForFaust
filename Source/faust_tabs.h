@@ -17,7 +17,16 @@ public:
     Faust_tabs()
     : TabbedComponent (TabbedButtonBar::TabsAtTop)
     {
-        
+        recommendedHeight = 0;
+        recommendedWidth = 0;
+    }
+    
+    void init(){
+        for(int i = 0; i < getNumTabs(); i++){
+            dynamic_cast<faustBox*>(getTabContentComponent(i))->setRatio();
+            recommendedHeight = jmax(recommendedHeight, dynamic_cast<faustBox*>(getTabContentComponent(i))->recommendedHeight);
+            recommendedWidth = jmax(recommendedWidth, dynamic_cast<faustBox*>(getTabContentComponent(i))->recommendedWidth);
+        }
     }
     
     static Colour getRandomTabBackgroundColour()
@@ -26,8 +35,16 @@ public:
     }
     
     void addTabs(String label, Component* comp){
-        addTab(label, getRandomTabBackgroundColour(), comp, true);
+        TabbedComponent::addTab(label, getRandomTabBackgroundColour(), comp, true);
+        for(int i = 0; i<getNumChildComponents(); i++){
+            faustBox* box = dynamic_cast<faustBox*>(getChildComponent(i));
+            if(box !=0)
+                std::cout<<"childs : "<<box->name<<", ";
+        }
+        std::cout<<std::endl;
     }
+    
+    int recommendedWidth, recommendedHeight;
 };
 
 #endif

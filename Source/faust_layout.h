@@ -20,13 +20,13 @@
 #define kVSliderHeight 250
 
 #define kHSliderWidth 350
-#define kHSliderHeight 60
+#define kHSliderHeight 50
 
 #define kButtonWidth 100
-#define kButtonHeight 30
+#define kButtonHeight 50
 
 #define kCheckButtonWidth 50
-#define kCheckButtonHeight 50
+#define kCheckButtonHeight 30
 
 #define kNumEntryWidth 100
 #define kNumEntryHeight 50
@@ -39,16 +39,13 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "Faust_tabs.h"
-#include "faust_box.h"
 #include "UI_Component.h"
+#include "faust_box.h"
+#include "faust_tabs.h"
 #include "MainComponent.h"
-#include "faust_UI.h"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MetaDataUI.h"
-
-extern bool tabLayout;
 
 struct Faust_layout: public GUI, public MetaDataUI, public Component
 {
@@ -56,7 +53,6 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     {
         boxNumber = 0;
         order = 0;
-        tabLayout = false;
     }
     
     void setSize(Rectangle<int> r){
@@ -64,8 +60,8 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     }
     
     Rectangle<int> getSize(){
-        if(tabLayout){ return Rectangle<int>(0, 0, curUI->getBoxAt(0)->recommendedWidth, curUI->getBoxAt(0)->recommendedHeight+30); }
-        else { return Rectangle<int>(0, 0, curUI->getBoxAt(0)->recommendedWidth, curUI->getBoxAt(0)->recommendedHeight); }
+        if(!tabLayout){ return Rectangle<int>(0, 0, dynamic_cast<faustBox*>(getChildComponent(0))->recommendedWidth, dynamic_cast<faustBox*>(getChildComponent(0))->recommendedHeight); }
+        else{ return Rectangle<int>(0, 0, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedWidth, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedHeight+30); }
     }
 
     virtual void openTabBox(const char* label){
@@ -74,20 +70,17 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     
     virtual void openVerticalBox(const char* label){
         if(boxNumber == 0) {
-            curUI = new Faust_UI();
-            curUI->addBox(new faustBox(window, true, String(label), -1, boxNumber, order));
-            if(String(label).isEmpty()) { tabName = "tab"; }
-            else { tabName = String(label); }
+            currentBox = new faustBox(true, String(label), order, tabLayout);
+            parentBox = nullptr;
+            tabName = String(label);
+            if(tabName.isEmpty()){ tabName = "tab"; }
+            if(!tabLayout){ addAndMakeVisible(currentBox); }
         }
         else{
-            currentBox->incItemCount();
-            currentBox->child.add(boxNumber);
-            previousIndex = getParentIndex(boxNumber, order-1);
-            curUI->addBox(new faustBox(*currentBox, true, String(label), previousIndex, boxNumber, order));
+            parentBox = currentBox;
+            currentBox = new faustBox(true, String(label), order, tabLayout);
+            parentBox->addChildBox(currentBox);
         }
-        
-        currentBox = curUI->getBoxAt(boxNumber);
-        addAndMakeVisible(currentBox);
         
         order++;
         boxNumber++;
@@ -95,21 +88,17 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     
     virtual void openHorizontalBox(const char* label){
         if(boxNumber == 0) {
-            curUI = new Faust_UI();
-            curUI->addBox(new faustBox(window, false, String(label), -1, boxNumber, order));
-            if(String(label).isEmpty()) { tabName = "tab"; }
-            else { tabName = String(label); }
+            currentBox = new faustBox(false, String(label), order, tabLayout);
+            parentBox = nullptr;
+            tabName = String(label);
+            if(!tabLayout){ addAndMakeVisible(currentBox); }
         }
         else{
-            currentBox->incItemCount();
-            currentBox->child.add(boxNumber);
-            previousIndex = getParentIndex(boxNumber, order-1);
-            curUI->addBox(new faustBox(*currentBox, false, String(label), previousIndex, boxNumber, order));
+            parentBox = currentBox;
+            currentBox = new faustBox(false, String(label), order, tabLayout);
+            parentBox->addChildBox(currentBox);
         }
         
-        currentBox = curUI->getBoxAt(boxNumber);
-        addAndMakeVisible(currentBox);
-
         order++;
         boxNumber++;
     }
@@ -117,37 +106,35 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
 
     virtual void closeBox(){
         order--;
-        if(order != -1){
-            previousIndex = currentBox->parentIndex;
-            currentBox = curUI->getBoxAt(previousIndex);
+        currentBox->calculRecommendedSize();
+        if(dynamic_cast<faustBox*>(currentBox->getParentComponent()) != 0){
+            currentBox = parentBox;
+            parentBox = currentBox->findParentComponentOfClass<faustBox>(); // Return comp parent of type 'faustBox'
         }
-        if(order == 0 && tabLayout){
-            curUI->setupUI();
-            tabs.addTabs(tabName, curUI);
+        if(tabLayout && order == 0/*dynamic_cast<faustBox*>(currentBox->getParentComponent()) != 0*/){
+            std::cout<<"Adding Box "<<currentBox->name<<" to tab "<<tabName<<std::endl;
+            tabs.addTabs(tabName, currentBox);
             tabName.clear();
             addAndMakeVisible(tabs);
             boxNumber = 0;
-        }
-        else if(order == 0 && !tabLayout)
-        {
-            curUI->setupUI();
-            addAndMakeVisible(curUI);
         }
     }
 
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        if(currentBox->vertical){
-            currentBox->recommendedHeight   += kHSliderHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHSliderWidth);
-        }
+        if(isKnob(zone)){ addKnob(label, zone, init, min, max, step); }
         else{
-            currentBox->recommendedWidth    += kHSliderWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHSliderHeight);
+            if(currentBox->vertical){
+                currentBox->recommendedHeight   += kHSliderHeight;
+                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHSliderWidth);
+            }
+            else{
+                currentBox->recommendedWidth    += kHSliderWidth;
+                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHSliderHeight);
+            }
+            
+            currentBox->addChildUiComponent(new uiSlider(this, zone, kHSliderWidth, kHSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), HSlider));
         }
-        curUI->addComponent(new uiSlider(this, currentBox, zone, kHSliderWidth, kHSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), HSlider));
-        
-        currentBox->incItemCount();
     }
     
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){
@@ -162,9 +149,8 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVSliderHeight);
             }
             
-            curUI->addComponent(new uiSlider(this, currentBox, zone, kVSliderWidth, kVSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), VSlider));
+            currentBox->addChildUiComponent(new uiSlider(this, zone, kVSliderWidth, kVSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), VSlider));
             
-            currentBox->incItemCount();
         }
     }
     
@@ -178,9 +164,8 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kKnobHeight);
         }
         
-        curUI->addComponent(new uiSlider(this, currentBox, zone, kKnobWidth, kKnobHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), Knob));
+        currentBox->addChildUiComponent(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), Knob));
         
-        currentBox->incItemCount();
     }
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone){
@@ -193,9 +178,8 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kButtonHeight);
         }
         
-        curUI->addComponent(new uiButton(this, currentBox, zone, kButtonWidth, kButtonHeight, String(label), RegularButton));
+        currentBox->addChildUiComponent(new uiButton(this, zone, kButtonWidth, kButtonHeight, String(label)));
         
-        currentBox->incItemCount();
     }
 
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone){
@@ -207,7 +191,8 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedWidth    += kCheckButtonWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kCheckButtonHeight);
         }
-        currentBox->incItemCount();
+        
+        currentBox->addChildUiComponent(new uiCheckButton(this, zone, kCheckButtonWidth, kCheckButtonHeight, String(label)));
     }
 
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -221,9 +206,8 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kNumEntryHeight);
         }
         
-        curUI->addComponent(new uiSlider(this, currentBox, zone, kVSliderWidth, kVSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), NumEntry));
+        currentBox->addChildUiComponent(new uiSlider(this, zone, kNumEntryWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), NumEntry));
         
-        currentBox->incItemCount();
     }
 
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -236,7 +220,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedWidth    += kHBargraphWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHBargraphHeight);
         }
-        currentBox->incItemCount();
+        
     }
     
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -249,42 +233,38 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedWidth    += kVBargraphWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVBargraphHeight);
         }
-        currentBox->incItemCount();
+        
     }
 
     virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)
     {
         MetaDataUI::declare(zone, key, value);
     }
-
-    int getParentIndex(int startIndex, int order){
-        int index = startIndex-1;
-        while(curUI->getBoxAt(index)->order != order){
-            index--;
+    
+    void init(){
+        if(tabLayout){
+            tabs.init();
         }
-        return index;
+        else{
+            dynamic_cast<faustBox*> (getChildComponent(0))->setRatio();
+            dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds());
+        }
     }
     
     void resized(){
-        if(tabLayout){ tabs.setBounds (getLocalBounds()); }
-        else{ curUI->setBounds(getLocalBounds()); }
+        if(tabLayout){ tabs.setBounds(getLocalBounds()); }
+        else{ dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds()); }
     }
     
-    virtual ~Faust_layout() override{
-        delete currentBox;
-        delete curUI;
-    }
-    
-    Faust_UI* curUI;
-    Faust_tabs tabs;
-    faustBox* currentBox;
-    Rectangle<int> window;
-
-    String tabName;
-    int previousIndex;
     int order;
-    int boxNumber;
+    int boxNumber; //Need ?
+    faustBox* currentBox;
+    faustBox* parentBox;
+    bool tabLayout = false;
+    Faust_tabs tabs;
+    String tabName;
 
+    Rectangle<int> window;
 };
 
 #endif

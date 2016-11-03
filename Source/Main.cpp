@@ -11,6 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "MainComponent.h"
 
+
 MainContentComponent* createMainContentComponent();
 
 //==============================================================================
@@ -74,7 +75,10 @@ public:
             if(getBounds().getHeight()<minHeight)   { height = minHeight; }
             getViewedComponent()->setBounds(0, 0, width, height);
         }
-        
+        /*
+        virtual void visibleAreaChanged (const Rectangle<int>& newVisibleArea) override{
+            getViewedComponent()->setBounds(getBounds());
+        }*/
     private:
         int minWidth, minHeight;
         int width, height;
@@ -90,15 +94,16 @@ public:
             setUsingNativeTitleBar (true);
             
             MainContentComponent* window = createMainContentComponent();
-            
+            //setContentOwned (window, true);
             setResizable (true, false);
             setResizeLimits(30, 30, 10000, 10000);
+            //22 pixels is the native title bar height
             
             centreWithSize (getWidth(), getHeight());
             setVisible(true);
             
-            int minWidth = jmin(window->getMinSize().getWidth(), screenWidth);
-            int minHeight = jmin(window->getMinSize().getHeight(), screenHeight);
+            int minWidth = window->getMinSize().getWidth();
+            int minHeight = window->getMinSize().getHeight();
             viewport = new myViewport(name, minWidth, minHeight);
             viewport->setViewedComponent(window);
             viewport->setSize(minWidth, minHeight);
@@ -122,9 +127,6 @@ public:
 
     private:
         myViewport* viewport;
-        Rectangle<int> screen = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
-        int screenWidth = screen.getWidth();
-        int screenHeight = screen.getHeight();
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
     

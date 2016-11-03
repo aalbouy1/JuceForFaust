@@ -6,38 +6,39 @@
 //
 //
 
-#ifndef Rectangle_AudioApp_UI_Component_h
-#define Rectangle_AudioApp_UI_Component_h
+#ifndef UI_COMPONENT_H
+#define UI_COMPONENT_H
+
+#include "../JuceLibraryCode/JuceHeader.h"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MetaDataUI.h"
 #include "faust/gui/ValueConverter.h"
 
-#include "faust_box.h"
-#include "../JuceLibraryCode/JuceHeader.h"
+class faustBox;
 
-enum componentType{
+enum sliderType{
     HSlider,
     VSlider,
     NumEntry,
-    Knob,
-    RegularButton
+    Knob
 };
 
 struct uiComponent: public Component, uiItem
 {
-private:
-    
-    faustBox* parent;
     float vRatio, hRatio;
     int recomWidth, recomHeight;
     
-public:
     Slider slider;
     TextButton button;
+    ToggleButton checkButton;
     
-    faustBox* getParent(){
-        return parent;
+    void setCompSize(Rectangle<int> r){
+        std::cout<<"New bounds of Component : {"<<r.toString()<<"}";
+        std::cout<<", for parent : "<<getParentComponent()<<", "<<getParentComponent()->getBounds().toString()<<std::endl;
+        std::cout<<"Ratios : "<<hRatio<<" "<<vRatio<<", Recommended Size : "<<recomWidth<<"x"<<recomHeight<<std::endl;
+        Component::setSize(r.getWidth(), r.getHeight());
+        setTopLeftPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
     }
     
     float getHRatio(){
@@ -67,7 +68,9 @@ public:
     virtual void paint(Graphics& g) = 0;
     virtual void resized() = 0;
     
-    uiComponent(GUI* gui, faustBox* par, FAUSTFLOAT* zone, int w, int h): uiItem(gui,zone), parent(par), recomWidth(w), recomHeight(h) {}
+    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h): uiItem(gui,zone), recomWidth(w), recomHeight(h)
+    {
+    }
 };
 
 struct uiSlider: public uiComponent,
@@ -76,16 +79,14 @@ private juce::Slider::Listener
 private:
     
     Slider::SliderStyle style;
-    
     Label label;
     String sliderName;
     ScopedPointer<ValueConverter> fConverter;
     int x, y, width, height;
-    bool horizontal;
-    componentType type;
+    sliderType type;
     
 public:
-    uiSlider(GUI* gui, faustBox* par, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, MetaDataUI::Scale scale, componentType kType) : uiComponent(gui, par, zone, w, h), sliderName(name), type(kType)
+    uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, MetaDataUI::Scale scale, sliderType kType) : uiComponent(gui, zone, w, h), sliderName(name), type(kType)
     {
         if (scale == MetaDataUI::kLog) 		{ fConverter = new LogValueConverter(min, max, min, max);   }
         else if (scale == MetaDataUI::kExp) { fConverter = new ExpValueConverter(min, max, min, max);   }
@@ -94,22 +95,18 @@ public:
         switch(type){
             case HSlider:
                 style = Slider::SliderStyle::LinearHorizontal;
-                horizontal = true;
                 break;
             case VSlider:
                 style = Slider::SliderStyle::LinearVertical;
                 slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
-                horizontal = false;
                 break;
             case NumEntry:
                 slider.setIncDecButtonsMode(Slider::incDecButtonsDraggable_AutoDirection);
                 style = Slider::SliderStyle::IncDecButtons;
-                horizontal = true;
                 break;
             case Knob:
                 style = Slider::SliderStyle::Rotary;
                 slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
-                horizontal = false;
                 break;
                 
             default:
@@ -126,23 +123,16 @@ public:
         slider.setTextValueSuffix(unit);
         
         //Label settings
-        if(horizontal){
+        if(type == HSlider || type == NumEntry){
             label.setText(sliderName, dontSendNotification);
-            label.attachToComponent(&slider, horizontal);
+            label.attachToComponent(&slider, true);
             addAndMakeVisible (label);
         }
     }
     
     virtual void paint(Graphics& g) override{
-        /*g.setColour(Colours::darkblue);
-        std::cout<<"Painting bounds : "<<getBounds().toString()<<std::endl;
-        g.fillRect(getBounds());*/
-    
         g.setColour (Colours::black);
-        if(!horizontal){
-            if(type == Knob) { g.drawText(sliderName, slider.getLocalBounds().withHeight(20), Justification::centredBottom); }
-            else{ g.drawText(sliderName, slider.getLocalBounds().withHeight(25), Justification::centredBottom); }
-        }
+        if(type == Knob || type == VSlider) { g.drawText(sliderName, slider.getLocalBounds(), Justification::centredTop); }
     }
 
     void reflectZone() override
@@ -161,8 +151,18 @@ public:
 
     virtual void resized() override{
         std::cout<<sliderName<<", ";
-        if(horizontal){ x = getLocalBounds().reduced(3).getX() + 60; y = getLocalBounds().reduced(3).getY(); width = getLocalBounds().reduced(3).getWidth()-60; height = getLocalBounds().reduced(3).getHeight(); }
-        else{ x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+20; height = getLocalBounds().reduced(3).getHeight()-20; width = getLocalBounds().reduced(3).getWidth(); }
+        if(type == HSlider){
+            x = getLocalBounds().reduced(3).getX() + 60; y = getLocalBounds().reduced(3).getY();
+            width = getLocalBounds().reduced(3).getWidth()-60; height = getLocalBounds().reduced(3).getHeight();
+        }
+        else if(type == NumEntry){
+            width = kNumEntryWidth-6; height = kNumEntryHeight-6;
+            x = (getLocalBounds().reduced(3).getWidth()-width)/2; y = (getLocalBounds().reduced(3).getHeight()-height)/2;
+        }
+        else{
+            x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+10;
+            height = getLocalBounds().reduced(3).getHeight()-20; width = getLocalBounds().reduced(3).getWidth();
+        }
         slider.setBounds(x, y, width, height);
     }
 };
@@ -174,13 +174,13 @@ private:
     
     String name;
     int x, y, width, height;
-    componentType type;
     
 public:
-    uiButton(GUI* gui, faustBox* par, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, componentType kType) :  uiComponent(gui, par, zone, w, h), name(label), width(w), height(h), type(kType)
+    uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label) :  uiComponent(gui, zone, w, h), name(label), width(w), height(h)
     {
         x = getLocalBounds().getX()+10;
-        height = getLocalBounds().reduced(3).getHeight();
+        width = kCheckButtonWidth;
+        height = kCheckButtonHeight;
         y = roundToInt((getLocalBounds().getHeight()-height)/2);
         
         button.setButtonText(label);
@@ -212,10 +212,62 @@ public:
     
     virtual void resized() override
     {
-        height = jmin(kButtonHeight, getLocalBounds().reduced(3).getHeight());
+        x = getLocalBounds().getX()+10;
+        height = getLocalBounds().reduced(3).getHeight();
+        width = getLocalBounds().getWidth()-20;
+        y = roundToInt((getLocalBounds().getHeight()-height)/2);
+        button.setBounds(x, y, width, height);
+    }
+};
+
+struct uiCheckButton: public uiComponent,
+private juce::Button::Listener
+{
+private:
+    
+    String name;
+    int x, y, width, height;
+    
+public:
+    uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label) :  uiComponent(gui, zone, w, h), name(label), width(w), height(h)
+    {
+        x = getLocalBounds().getX()+10;
+        width = getLocalBounds().getWidth()-20;
+        height = getLocalBounds().reduced(3).getHeight();
+        y = roundToInt((getLocalBounds().getHeight()-height)/2);
+        
+        checkButton.setButtonText(label);
+        checkButton.setBounds(x, y, width, height);
+        checkButton.addListener(this);
+        
+        addAndMakeVisible(button);
+    }
+    
+    void buttonClicked (Button* button) override
+    {
+    }
+    
+    void buttonStateChanged (Button* button) override
+    {
+        if(button->isDown()) { modifyZone(1.0); }
+        else { modifyZone(0.0); }
+    }
+    
+    void reflectZone() override
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+    }
+    
+    virtual void paint(Graphics& g) override
+    {
+    }
+    
+    virtual void resized() override
+    {
         x = getLocalBounds().getX()+10;
         y = roundToInt((getLocalBounds().getHeight()-height)/2);
-        button.setBounds(x, y, getLocalBounds().getWidth()-20, height);
+        button.setBounds(x, y, width, height);
     }
 };
 

@@ -14,18 +14,20 @@
 
 
 // Select here the compiled DSP that you want to execute
-//#include "DSP files/noise.h"
-//#include "DSP files/kisana.h"
-//#include "DSP Files/matrix.h"
-//#include "DSP files/karplus.h"
-//#include "DSP Files/karplus32.h"
-//#include "DSP Files/karplus32bis.h"
-#include "DSP Files/UITester.h"
-//#include "DSP Files/cubic_distortion.h"
+//#include "DSP files/noise.h"              //OK
+//#include "DSP files/kisana.h"             //OK
+//#include "DSP files/kisana - copie.h"     //OK
+//#include "DSP Files/matrix.h"             //OK
+//#include "DSP files/karplus.h"            //OK
+//#include "DSP Files/karplus32.h"          //OK
+//#include "DSP Files/karplus_synth.h"      //OK
+//#include "DSP Files/karplus32bis.h"       //OK
+//#include "DSP Files/UITester.h"           //PAS OK
+#include "DSP Files/cubic_distortion.h"   //QUASI OK
+
+//#include "faust/dsp/poly-dsp.h"
 
 std::list<GUI*> GUI::fGuiList;
-extern int windowWidth;
-extern int windowHeight;
 
 class MainContentComponent   : public AudioAppComponent, private Timer
 {
@@ -35,17 +37,25 @@ public:
     {
         fDSP = new mydsp();
         
+        //-----------------------------------------------
+        // Polyphonic DSP built using a single DSP voice
+        //-----------------------------------------------
+        
+        //fDSP = new mydsp_poly(fDSP.release(), 32, true);
+        
         fDSP->buildUserInterface(&layout);
+        
         addAndMakeVisible(layout);
         
-        recommendedSize = layout.getSize();
+        layout.init();
         
-        windowWidth = recommendedSize.getWidth();
-        windowHeight = recommendedSize.getHeight();
-        setSize (windowWidth, windowHeight);
+        recommendedSize = layout.getSize();
+        setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 
         // specify the number of input and output channels that we want to open
-        //setAudioChannels (fDSP->getNumInputs(), fDSP->getNumOutputs());
+        if(fDSP->getNumInputs() < 3 && fDSP->getNumOutputs() < 3){
+            setAudioChannels (fDSP->getNumInputs(), fDSP->getNumOutputs());
+        }
         startTimerHz(25);
     }
 
@@ -92,8 +102,7 @@ public:
 
     void resized() override
     {
-        windowWidth = getLocalBounds().getWidth();
-        windowHeight = getLocalBounds().getHeight();
+std::cout<<std::endl<<"RESIZING"<<std::endl<<std::endl;
         layout.setSize(getLocalBounds());
         layout.setBounds(getLocalBounds());
     }
@@ -104,8 +113,11 @@ public:
 
 private:
     Faust_layout layout;
-    ScopedPointer<mydsp> fDSP;
 
+    ScopedPointer<dsp> fDSP;
+    //ScopedPointer<mydsp> fDSP;
+
+    int width, height;
     Rectangle<int> recommendedSize;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
