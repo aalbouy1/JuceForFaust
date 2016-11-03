@@ -231,19 +231,17 @@ private:
 public:
     uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label) :  uiComponent(gui, zone, w, h), name(label), width(w), height(h)
     {
-        x = getLocalBounds().getX()+10;
-        width = getLocalBounds().getWidth()-20;
-        height = getLocalBounds().reduced(3).getHeight();
-        y = roundToInt((getLocalBounds().getHeight()-height)/2);
+        x = roundToInt(getLocalBounds().getX() + 10);
+        y = roundToInt((getLocalBounds().getHeight()-kCheckButtonHeight)/2);
         
         checkButton.setButtonText(label);
         checkButton.setBounds(x, y, width, height);
         checkButton.addListener(this);
         
-        addAndMakeVisible(button);
+        addAndMakeVisible(checkButton);
     }
     
-    void buttonClicked (Button* button) override
+    void buttonClicked(Button* button)
     {
     }
     
@@ -259,15 +257,179 @@ public:
         fCache = v;
     }
     
+    
+    
     virtual void paint(Graphics& g) override
     {
     }
     
     virtual void resized() override
     {
-        x = getLocalBounds().getX()+10;
-        y = roundToInt((getLocalBounds().getHeight()-height)/2);
-        button.setBounds(x, y, width, height);
+        std::cout<<"RESIZING CHECKBUTTON"<<std::endl;
+        x = roundToInt(getLocalBounds().getX()+10);
+        y = roundToInt((getLocalBounds().getHeight()-kCheckButtonHeight)/2);
+        checkButton.setBounds(x, y, width, kCheckButtonHeight);
+    }
+};
+
+class VUMeter  : public uiComponent,
+public Timer
+{
+public:
+    VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, bool vert)
+    : uiComponent(gui, zone, w, h), min(mini), max(maxi), vertical(vert)
+    {
+        level = 0;
+        startTimer (50);
+        
+        // Set tresholds here, need to be included in [0;1]
+        orangeTreshold = 0.75f;
+        redTreshold = 0.9f;
+    }
+    
+    void setLevel(){
+        float rawLevel = *fZone;
+        
+        newLevel = (rawLevel-min)/(max-min);
+        if(level > 1){ newLevel = 1; }
+        else if(level < 0){ newLevel = 0; }
+    }
+    
+    void timerCallback() override
+    {
+        if (isShowing())
+        {
+            setLevel();
+            level = newLevel;
+            repaint();
+        }
+        else
+        {
+            level = 0;
+        }
+    }
+    
+    void paint (Graphics& g) override
+    {
+        if(vertical){ drawVBargraph (g, getWidth(), getHeight(), (float) exp (log (level) / 3.0)); }
+        else{ drawHBargraph (g, getWidth(), getHeight(), (float) exp (log (level) / 3.0)); }
+        // (add a bit of a skew to make the level more obvious)
+    }
+    
+    void resized() override{
+    }
+    
+    void reflectZone() override
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+    }
+    
+private:
+    float level, newLevel;
+    float min, max;
+    bool vertical;
+    float orangeTreshold, redTreshold;
+    
+    void drawHBargraph(Graphics& g, int width, int height, float level){
+        g.setColour(Colours::black);
+        g.fillRect(0.0f, 0.0f, (float) width, (float) height);
+        g.setColour(Colours::white);
+        g.fillRect(1.0f, 1.0f, (float) width-2, (float) height-2);
+        
+        
+        if(level > 1){ level = 1; }
+        else if(level < 0){ level = 0; }
+        
+        if(level >= 0.0f && level <= 1.0f){
+            g.setColour(Colours::green);
+            g.fillRect(1.0f, 1.0f, (float) level*(width-2), (float) height-2);
+            
+            if(level > orangeTreshold){
+                g.setColour(Colours::orange);
+                g.fillRect((float) (orangeTreshold * (width-2)) + 1.0f, 1.0f, (float)(level-orangeTreshold) * (width - 2), (float) height-2);
+            }
+            if(level > redTreshold){
+                g.setColour(Colours::red);
+                g.fillRect((float) (redTreshold * (width-2)) + 1.0f, 1.0f, (float)(level-redTreshold) * (width - 2), (float) height-2);
+            }
+        }
+    }
+    
+    void drawVBargraph(Graphics& g, int width, int height, float level){
+        g.setColour(Colours::black);
+        g.fillRect(0.0f, 0.0f, (float) width, (float) height);
+        g.setColour(Colours::white);
+        g.fillRect(1.0f, 1.0f, (float) width-2, (float) height-2);
+        
+        
+        if(level > 1){ level = 1; }
+        else if(level < 0){ level = 0; }
+        
+        if(level >= 0.0f && level <= 1.0f){
+            g.setColour(Colours::green);
+            g.fillRect(1.0f, (float) (1.0f-level)*(height-2) + 1.0f, (float) width-2, (float) level*(height-2));
+            
+            if(level > orangeTreshold){
+                g.setColour(Colours::orange);
+                g.fillRect(1.0f, (float) (1.0f-level) * (height-2) + 1.0f, (float) width-2, (float)(level-orangeTreshold) * (height - 2));
+            }
+            if(level > redTreshold){
+                g.setColour(Colours::red);
+                g.fillRect(1.0f, (float) (1.0f-level) * (height-2) + 1.0f, (float) width-2, (float)(level-redTreshold) * (height - 2));
+            }
+        }
+    }
+    
+    // Another style
+    void drawHorizontalLevelMeter (Graphics& g, int width, int height, float level)
+    {
+        g.setColour (Colours::white.withAlpha (0.7f));
+        g.fillRoundedRectangle (0.0f, 0.0f, (float) width, (float) height, 3.0f);
+        g.setColour (Colours::black.withAlpha (0.2f));
+        g.drawRoundedRectangle (1.0f, 1.0f, width - 2.0f, height - 2.0f, 3.0f, 1.0f);
+        
+        const int totalBlocks = 7;
+        const int numBlocks = roundToInt (totalBlocks * level);
+        const float w = (width - 6.0f) / (float) totalBlocks;
+        
+        for (int i = 0; i < totalBlocks; ++i)
+        {
+            if (i >= numBlocks)
+                g.setColour (Colours::lightgrey.withAlpha (0.6f));
+            else{
+                if(i < totalBlocks - 3){ g.setColour(Colours::green); }
+                else if(i < totalBlocks - 1){ g.setColour(Colours::orange); }
+                else{ g.setColour(Colours::red); }
+            }
+            
+            g.fillRect (3.0f + i * w + w * 0.1f, 3.0f, w * 0.8f, height - 6.0f);
+        }
+    }
+    
+    void drawVerticalLevelMeter (Graphics& g, int width, int height, float level)
+    {
+        g.setColour (Colours::white.withAlpha (0.7f));
+        g.fillRoundedRectangle (0.0f, 0.0f, (float) width, (float) height, 3.0f);
+        g.setColour (Colours::black.withAlpha (0.2f));
+        g.drawRoundedRectangle (1.0f, 1.0f, width - 2.0f, height - 2.0f, 3.0f, 1.0f);
+        
+        const int totalBlocks = 7;
+        const int numBlocks = roundToInt (totalBlocks * level);
+        const float h = (height - 6.0f) / (float) totalBlocks;
+        
+        for (int i = 0; i < totalBlocks; ++i)
+        {
+            if (i >= numBlocks)
+                g.setColour (Colours::lightgrey.withAlpha (0.6f));
+            else{
+                if(i < totalBlocks - 3){ g.setColour(Colours::green); }
+                else if(i < totalBlocks - 1){ g.setColour(Colours::orange); }
+                else{ g.setColour(Colours::red); }
+            }
+            
+            g.fillRect(3.0f, 3.0f + i * h + h * 0.1f, width - 6.0f, h * 0.8f);
+        }
     }
 };
 

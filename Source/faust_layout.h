@@ -25,17 +25,17 @@
 #define kButtonWidth 100
 #define kButtonHeight 50
 
-#define kCheckButtonWidth 50
+#define kCheckButtonWidth 100
 #define kCheckButtonHeight 30
 
 #define kNumEntryWidth 100
 #define kNumEntryHeight 50
 
-#define kVBargraphWidth 110
+#define kVBargraphWidth 80
 #define kVBargraphHeight 250
 
 #define kHBargraphWidth 350
-#define kHBargraphHeight 110
+#define kHBargraphHeight 50
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
@@ -220,6 +220,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedWidth    += kHBargraphWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHBargraphHeight);
         }
+        currentBox->addChildUiComponent(new VUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, false));
         
     }
     
@@ -233,7 +234,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedWidth    += kVBargraphWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVBargraphHeight);
         }
-        
+        currentBox->addChildUiComponent(new VUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, true));
     }
 
     virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)

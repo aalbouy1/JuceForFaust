@@ -127,8 +127,14 @@ class mydsp : public dsp {
 	
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("0x00");
+        ui_interface->openHorizontalBox("0x");
 		ui_interface->declare(&fVslider0, "style", "knob");
 		ui_interface->addVerticalSlider("Volume", &fVslider0, 0.200000003f, 0.0f, 1.0f, 0.100000001f);
+        ui_interface->addVerticalBargraph("0xdef", &fVslider0, 0, 1);
+        ui_interface->closeBox();
+        ui_interface->openHorizontalBox("0x00");
+        ui_interface->addHorizontalBargraph("0xabc", &fVslider0, 0, 1);
+        ui_interface->closeBox();
 		ui_interface->closeBox();
 		
 	}
