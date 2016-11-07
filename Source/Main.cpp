@@ -74,6 +74,7 @@ public:
             if(getBounds().getWidth()<minWidth)     { width = minWidth; }
             if(getBounds().getHeight()<minHeight)   { height = minHeight; }
             getViewedComponent()->setBounds(0, 0, width, height);
+            addAndMakeVisible(tooltipWindow);
         }
         /*
         virtual void visibleAreaChanged (const Rectangle<int>& newVisibleArea) override{
@@ -82,6 +83,7 @@ public:
     private:
         int minWidth, minHeight;
         int width, height;
+        TooltipWindow tooltipWindow;
     };
     
     class MainWindow    : public DocumentWindow

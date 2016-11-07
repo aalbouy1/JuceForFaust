@@ -10,18 +10,18 @@
               file="Source/DSP Files/cubic_distortion.h"/>
         <FILE id="ioGqRp" name="karplus.h" compile="0" resource="0" file="Source/DSP Files/karplus.h"/>
         <FILE id="CidygP" name="karplus32.h" compile="0" resource="0" file="Source/DSP Files/karplus32.h"/>
-        <FILE id="Rz4ZWJ" name="karplus_synth.h" compile="0" resource="0" file="Source/DSP Files/karplus_synth.h"/>
-        <FILE id="U64LAX" name="karplus32bis.h" compile="0" resource="0" file="Source/DSP Files/karplus32bis.h"/>
+        <FILE id="tGJRfq" name="karplus32bis.h" compile="0" resource="0" file="../Rectangle AudioApp - Onglet/Source/DSP Files/karplus32bis.h"/>
+        <FILE id="Fd0fti" name="karplus_synth.h" compile="0" resource="0" file="../Rectangle AudioApp - Onglet/Source/DSP Files/karplus_synth.h"/>
         <FILE id="ZRs87E" name="kisana.h" compile="0" resource="0" file="Source/DSP Files/kisana.h"/>
         <FILE id="x5NJex" name="matrix.h" compile="0" resource="0" file="Source/DSP Files/matrix.h"/>
         <FILE id="spZFIz" name="noise.h" compile="0" resource="0" file="Source/DSP Files/noise.h"/>
         <FILE id="UHCx5N" name="UITester.h" compile="0" resource="0" file="Source/DSP Files/UITester.h"/>
       </GROUP>
       <FILE id="BZxKq4" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
-      <FILE id="pWX0xT" name="faust_tabs.h" compile="0" resource="0" file="Source/faust_tabs.h"/>
       <FILE id="CPyMHp" name="UI_Component.h" compile="0" resource="0" file="Source/UI_Component.h"/>
       <FILE id="QLvmOF" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="eZ4tWI" name="faust_box.h" compile="0" resource="0" file="Source/faust_box.h"/>
+      <FILE id="RQNz52" name="faust_tabs.h" compile="0" resource="0" file="../Rectangle AudioApp - Onglet/Source/faust_tabs.h"/>
       <FILE id="VCT380" name="faust_layout.h" compile="0" resource="0" file="Source/faust_layout.h"/>
     </GROUP>
   </MAINGROUP>
@@ -276,4 +276,7 @@
     <MODULE id="juce_video" showAllCode="1" useLocalCopy="0"/>
   </MODULES>
   <JUCEOPTIONS/>
+  <LIVE_SETTINGS>
+    <OSX systemHeaderPath="" extraCompilerFlags="" extraDLLs=""/>
+  </LIVE_SETTINGS>
 </JUCERPROJECT>

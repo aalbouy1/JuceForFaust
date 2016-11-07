@@ -70,10 +70,9 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     
     virtual void openVerticalBox(const char* label){
         if(boxNumber == 0) {
+            if(tabLayout){ tabName = String(label); label = nullptr; }
             currentBox = new faustBox(true, String(label), order, tabLayout);
             parentBox = nullptr;
-            tabName = String(label);
-            if(tabName.isEmpty()){ tabName = "tab"; }
             if(!tabLayout){ addAndMakeVisible(currentBox); }
         }
         else{
@@ -88,9 +87,9 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     
     virtual void openHorizontalBox(const char* label){
         if(boxNumber == 0) {
+            if(tabLayout){ tabName = String(label); label = nullptr; }
             currentBox = new faustBox(false, String(label), order, tabLayout);
             parentBox = nullptr;
-            tabName = String(label);
             if(!tabLayout){ addAndMakeVisible(currentBox); }
         }
         else{
@@ -133,7 +132,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHSliderHeight);
             }
             
-            currentBox->addChildUiComponent(new uiSlider(this, zone, kHSliderWidth, kHSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), HSlider));
+            currentBox->addChildUiComponent(new uiSlider(this, zone, kHSliderWidth, kHSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), HSlider));
         }
     }
     
@@ -149,7 +148,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVSliderHeight);
             }
             
-            currentBox->addChildUiComponent(new uiSlider(this, zone, kVSliderWidth, kVSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), VSlider));
+            currentBox->addChildUiComponent(new uiSlider(this, zone, kVSliderWidth, kVSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), VSlider));
             
         }
     }
@@ -164,7 +163,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kKnobHeight);
         }
         
-        currentBox->addChildUiComponent(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), Knob));
+        currentBox->addChildUiComponent(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
         
     }
     
@@ -178,7 +177,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kButtonHeight);
         }
         
-        currentBox->addChildUiComponent(new uiButton(this, zone, kButtonWidth, kButtonHeight, String(label)));
+        currentBox->addChildUiComponent(new uiButton(this, zone, kButtonWidth, kButtonHeight, String(label), String(fTooltip[zone])));
         
     }
 
@@ -192,7 +191,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kCheckButtonHeight);
         }
         
-        currentBox->addChildUiComponent(new uiCheckButton(this, zone, kCheckButtonWidth, kCheckButtonHeight, String(label)));
+        currentBox->addChildUiComponent(new uiCheckButton(this, zone, kCheckButtonWidth, kCheckButtonHeight, String(label), String(fTooltip[zone])));
     }
 
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -206,7 +205,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kNumEntryHeight);
         }
         
-        currentBox->addChildUiComponent(new uiSlider(this, zone, kNumEntryWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), getScale(zone), NumEntry));
+        currentBox->addChildUiComponent(new uiSlider(this, zone, kNumEntryWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), NumEntry));
         
     }
 
@@ -220,7 +219,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedWidth    += kHBargraphWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHBargraphHeight);
         }
-        currentBox->addChildUiComponent(new VUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, false));
+        currentBox->addChildUiComponent(new VUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), false));
         
     }
     
@@ -234,7 +233,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedWidth    += kVBargraphWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVBargraphHeight);
         }
-        currentBox->addChildUiComponent(new VUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, true));
+        currentBox->addChildUiComponent(new VUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), true));
     }
 
     virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)

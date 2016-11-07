@@ -22,8 +22,8 @@
 //#include "DSP Files/karplus32.h"          //OK
 //#include "DSP Files/karplus_synth.h"      //OK
 //#include "DSP Files/karplus32bis.h"       //OK
-//#include "DSP Files/UITester.h"           //PAS OK
-#include "DSP Files/cubic_distortion.h"   //QUASI OK
+//#include "DSP Files/UITester.h"           //ALMOST OK
+#include "DSP Files/cubic_distortion.h"   //OK
 
 //#include "faust/dsp/poly-dsp.h"
 
@@ -102,7 +102,7 @@ public:
 
     void resized() override
     {
-std::cout<<std::endl<<"RESIZING"<<std::endl<<std::endl;
+        std::cout<<std::endl<<"RESIZING"<<std::endl<<std::endl;
         layout.setSize(getLocalBounds());
         layout.setBounds(getLocalBounds());
     }
@@ -115,7 +115,6 @@ private:
     Faust_layout layout;
 
     ScopedPointer<dsp> fDSP;
-    //ScopedPointer<mydsp> fDSP;
 
     int width, height;
     Rectangle<int> recommendedSize;

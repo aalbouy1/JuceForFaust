@@ -24,10 +24,11 @@ enum sliderType{
     Knob
 };
 
-struct uiComponent: public Component, uiItem
+struct uiComponent: public Component, uiItem, SettableTooltipClient
 {
     float vRatio, hRatio;
     int recomWidth, recomHeight;
+    String tooltipText;
     
     Slider slider;
     TextButton button;
@@ -68,8 +69,9 @@ struct uiComponent: public Component, uiItem
     virtual void paint(Graphics& g) = 0;
     virtual void resized() = 0;
     
-    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h): uiItem(gui,zone), recomWidth(w), recomHeight(h)
+    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip): uiItem(gui,zone), recomWidth(w), recomHeight(h), tooltipText(tooltip)
     {
+        std::cout<<"TOOLTIP : "<<tooltipText<<std::endl;
     }
 };
 
@@ -86,7 +88,7 @@ private:
     sliderType type;
     
 public:
-    uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, MetaDataUI::Scale scale, sliderType kType) : uiComponent(gui, zone, w, h), sliderName(name), type(kType)
+    uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, sliderType kType) : uiComponent(gui, zone, w, h, tooltip), sliderName(name), type(kType)
     {
         if (scale == MetaDataUI::kLog) 		{ fConverter = new LogValueConverter(min, max, min, max);   }
         else if (scale == MetaDataUI::kExp) { fConverter = new ExpValueConverter(min, max, min, max);   }
@@ -121,12 +123,14 @@ public:
         slider.addListener(this);
         slider.setSliderStyle(style);
         slider.setTextValueSuffix(unit);
+        if(tooltipText.isNotEmpty()){ slider.setTooltip(tooltipText); }
         
         //Label settings
         if(type == HSlider || type == NumEntry){
             label.setText(sliderName, dontSendNotification);
             label.attachToComponent(&slider, true);
             addAndMakeVisible (label);
+            if(tooltipText.isNotEmpty()){ label.setTooltip(tooltipText); }
         }
     }
     
@@ -176,7 +180,7 @@ private:
     int x, y, width, height;
     
 public:
-    uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label) :  uiComponent(gui, zone, w, h), name(label), width(w), height(h)
+    uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
     {
         x = getLocalBounds().getX()+10;
         width = kCheckButtonWidth;
@@ -186,6 +190,7 @@ public:
         button.setButtonText(label);
         button.setBounds(x, y, width, height);
         button.addListener(this);
+        if(tooltipText.isNotEmpty()){ button.setTooltip(tooltipText); }
         
         addAndMakeVisible(button);
     }
@@ -229,14 +234,17 @@ private:
     int x, y, width, height;
     
 public:
-    uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label) :  uiComponent(gui, zone, w, h), name(label), width(w), height(h)
+    uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
     {
         x = roundToInt(getLocalBounds().getX() + 10);
         y = roundToInt((getLocalBounds().getHeight()-kCheckButtonHeight)/2);
         
+        if(tooltipText.isNotEmpty()){ setTooltip(tooltipText); }
+        
         checkButton.setButtonText(label);
         checkButton.setBounds(x, y, width, height);
         checkButton.addListener(this);
+        if(tooltipText.isNotEmpty()){ checkButton.setTooltip(tooltipText); }
         
         addAndMakeVisible(checkButton);
     }
@@ -272,15 +280,18 @@ public:
     }
 };
 
-class VUMeter  : public uiComponent,
-public Timer
+class VUMeter  : public uiComponent, public Timer
 {
 public:
-    VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, bool vert)
-    : uiComponent(gui, zone, w, h), min(mini), max(maxi), vertical(vert)
+    VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, bool vert)
+    : uiComponent(gui, zone, w, h, tooltip), min(mini), max(maxi), vertical(vert)
     {
         level = 0;
         startTimer (50);
+        this->unit = unit;
+        
+        if(tooltipText.isNotEmpty()){ setTooltip(tooltipText); }
+        setupTextEditor();
         
         // Set tresholds here, need to be included in [0;1]
         orangeTreshold = 0.75f;
@@ -289,6 +300,7 @@ public:
     
     void setLevel(){
         float rawLevel = *fZone;
+        TE.setText(String(rawLevel*100.0f/100.0f)+unit);
         
         newLevel = (rawLevel-min)/(max-min);
         if(level > 1){ newLevel = 1; }
@@ -311,12 +323,13 @@ public:
     
     void paint (Graphics& g) override
     {
-        if(vertical){ drawVBargraph (g, getWidth(), getHeight(), (float) exp (log (level) / 3.0)); }
-        else{ drawHBargraph (g, getWidth(), getHeight(), (float) exp (log (level) / 3.0)); }
+        if(vertical){   drawVBargraph (g, kVBargraphWidth/2 , getHeight(), (float) exp (log (level) / 3.0)); }
+        else{           drawHBargraph (g, getWidth(), kHBargraphHeight, (float) exp (log (level) / 3.0)); }
         // (add a bit of a skew to make the level more obvious)
     }
     
     void resized() override{
+        setTextEditorPos();
     }
     
     void reflectZone() override
@@ -330,105 +343,77 @@ private:
     float min, max;
     bool vertical;
     float orangeTreshold, redTreshold;
+    String unit;
+    TextEditor TE;
+    
+    void setTextEditorPos(){
+        if(vertical){   TE.setBounds((getWidth()-75)/2, getHeight()-22, 75, 20); }
+        else{           TE.setBounds((getWidth()-75)/2, getHeight()-22, 75, 20); }
+    }
+    
+    void setupTextEditor(){
+        setTextEditorPos();        
+        TE.setMultiLine(false);
+        TE.setReadOnly(true);
+        TE.setText(String(*fZone) + unit);
+        
+        addAndMakeVisible(TE);
+    }
     
     void drawHBargraph(Graphics& g, int width, int height, float level){
+        float x = (float)(getWidth()-width)/2;
+        float y = (float) getHeight()-height;
+        
         g.setColour(Colours::black);
-        g.fillRect(0.0f, 0.0f, (float) width, (float) height);
+        g.fillRect(x, y, (float) width, (float) height);
         g.setColour(Colours::white);
-        g.fillRect(1.0f, 1.0f, (float) width-2, (float) height-2);
+        g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
         
         
         if(level > 1){ level = 1; }
         else if(level < 0){ level = 0; }
         
         if(level >= 0.0f && level <= 1.0f){
-            g.setColour(Colours::green);
-            g.fillRect(1.0f, 1.0f, (float) level*(width-2), (float) height-2);
+            g.setColour(Colours::green.withAlpha(0.8f));
+            g.fillRect(x+1.0f, y+1.0f, (float) level*(width-2), (float) height-2);
             
             if(level > orangeTreshold){
-                g.setColour(Colours::orange);
-                g.fillRect((float) (orangeTreshold * (width-2)) + 1.0f, 1.0f, (float)(level-orangeTreshold) * (width - 2), (float) height-2);
+                g.setColour(Colours::orange.withAlpha(0.8f));
+                g.fillRect((float) (orangeTreshold * (width-2)) + x+1.0f, y+1.0f, (float)(level-orangeTreshold) * (width - 2), (float) height-2);
             }
             if(level > redTreshold){
-                g.setColour(Colours::red);
-                g.fillRect((float) (redTreshold * (width-2)) + 1.0f, 1.0f, (float)(level-redTreshold) * (width - 2), (float) height-2);
+                g.setColour(Colours::red.withAlpha(0.8f));
+                g.fillRect((float) (redTreshold * (width-2)) + x+1.0f, y+1.0f, (float)(level-redTreshold) * (width - 2), (float) height-2);
             }
         }
     }
     
     void drawVBargraph(Graphics& g, int width, int height, float level){
+        float x = (float)(getLocalBounds().getWidth()-width)/2;
+        float y = (float) getLocalBounds().getHeight()-height+15;
+        height -= 40;
+        
         g.setColour(Colours::black);
-        g.fillRect(0.0f, 0.0f, (float) width, (float) height);
+        g.fillRect(x, y, (float) width, (float) height);
         g.setColour(Colours::white);
-        g.fillRect(1.0f, 1.0f, (float) width-2, (float) height-2);
+        g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
         
         
-        if(level > 1){ level = 1; }
-        else if(level < 0){ level = 0; }
+        if(level > 1.0f){ level = 1.0f; }
+        else if(level < 0.0f){ level = 0.0f; }
         
         if(level >= 0.0f && level <= 1.0f){
-            g.setColour(Colours::green);
-            g.fillRect(1.0f, (float) (1.0f-level)*(height-2) + 1.0f, (float) width-2, (float) level*(height-2));
+            g.setColour(Colours::green.withAlpha(0.8f));
+            g.fillRect(x+1.0f, (float) (1.0f-level)*(height-2) + y+1.0f, (float) width-2, (float) level*(height-2));
             
             if(level > orangeTreshold){
-                g.setColour(Colours::orange);
-                g.fillRect(1.0f, (float) (1.0f-level) * (height-2) + 1.0f, (float) width-2, (float)(level-orangeTreshold) * (height - 2));
+                g.setColour(Colours::orange.withAlpha(0.8f));
+                g.fillRect(x+1.0f, (float) (1.0f-level) * (height-2) + y+1.0f, (float) width-2, (float)(level-orangeTreshold) * (height - 2));
             }
             if(level > redTreshold){
-                g.setColour(Colours::red);
-                g.fillRect(1.0f, (float) (1.0f-level) * (height-2) + 1.0f, (float) width-2, (float)(level-redTreshold) * (height - 2));
+                g.setColour(Colours::red.withAlpha(0.8f));
+                g.fillRect(x+1.0f, (float) (1.0f-level) * (height-2) + y+1.0f, (float) width-2, (float)(level-redTreshold) * (height - 2));
             }
-        }
-    }
-    
-    // Another style
-    void drawHorizontalLevelMeter (Graphics& g, int width, int height, float level)
-    {
-        g.setColour (Colours::white.withAlpha (0.7f));
-        g.fillRoundedRectangle (0.0f, 0.0f, (float) width, (float) height, 3.0f);
-        g.setColour (Colours::black.withAlpha (0.2f));
-        g.drawRoundedRectangle (1.0f, 1.0f, width - 2.0f, height - 2.0f, 3.0f, 1.0f);
-        
-        const int totalBlocks = 7;
-        const int numBlocks = roundToInt (totalBlocks * level);
-        const float w = (width - 6.0f) / (float) totalBlocks;
-        
-        for (int i = 0; i < totalBlocks; ++i)
-        {
-            if (i >= numBlocks)
-                g.setColour (Colours::lightgrey.withAlpha (0.6f));
-            else{
-                if(i < totalBlocks - 3){ g.setColour(Colours::green); }
-                else if(i < totalBlocks - 1){ g.setColour(Colours::orange); }
-                else{ g.setColour(Colours::red); }
-            }
-            
-            g.fillRect (3.0f + i * w + w * 0.1f, 3.0f, w * 0.8f, height - 6.0f);
-        }
-    }
-    
-    void drawVerticalLevelMeter (Graphics& g, int width, int height, float level)
-    {
-        g.setColour (Colours::white.withAlpha (0.7f));
-        g.fillRoundedRectangle (0.0f, 0.0f, (float) width, (float) height, 3.0f);
-        g.setColour (Colours::black.withAlpha (0.2f));
-        g.drawRoundedRectangle (1.0f, 1.0f, width - 2.0f, height - 2.0f, 3.0f, 1.0f);
-        
-        const int totalBlocks = 7;
-        const int numBlocks = roundToInt (totalBlocks * level);
-        const float h = (height - 6.0f) / (float) totalBlocks;
-        
-        for (int i = 0; i < totalBlocks; ++i)
-        {
-            if (i >= numBlocks)
-                g.setColour (Colours::lightgrey.withAlpha (0.6f));
-            else{
-                if(i < totalBlocks - 3){ g.setColour(Colours::green); }
-                else if(i < totalBlocks - 1){ g.setColour(Colours::orange); }
-                else{ g.setColour(Colours::red); }
-            }
-            
-            g.fillRect(3.0f, 3.0f + i * h + h * 0.1f, width - 6.0f, h * 0.8f);
         }
     }
 };
