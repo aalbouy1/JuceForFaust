@@ -96,15 +96,13 @@ public:
             setUsingNativeTitleBar (true);
             
             MainContentComponent* window = createMainContentComponent();
-            //setContentOwned (window, true);
             setResizable (true, false);
             setResizeLimits(30, 30, 10000, 10000);
-            //22 pixels is the native title bar height
             
             centreWithSize (getWidth(), getHeight());
             setVisible(true);
             
-            int minWidth = window->getMinSize().getWidth();
+            int minWidth  = window->getMinSize().getWidth();
             int minHeight = window->getMinSize().getHeight();
             viewport = new myViewport(name, minWidth, minHeight);
             viewport->setViewedComponent(window);

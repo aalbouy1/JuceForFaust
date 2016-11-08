@@ -31,11 +31,14 @@
 #define kNumEntryWidth 100
 #define kNumEntryHeight 50
 
-#define kVBargraphWidth 80
+#define kVBargraphWidth 60
 #define kVBargraphHeight 250
 
 #define kHBargraphWidth 350
 #define kHBargraphHeight 50
+
+#define kLedWidth 25
+#define kLedHeight 25
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
@@ -211,30 +214,49 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
 
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
-        if(currentBox->vertical){
-            currentBox->recommendedHeight   += kHBargraphHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHBargraphWidth);
-        }
+        if(isLed(zone)){ addLed(String(label), zone, min, max); }
         else{
-            currentBox->recommendedWidth    += kHBargraphWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHBargraphHeight);
+            if(currentBox->vertical){
+                currentBox->recommendedHeight   += kHBargraphHeight;
+                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHBargraphWidth);
+            }
+            else{
+                currentBox->recommendedWidth    += kHBargraphWidth;
+                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHBargraphHeight);
+            }
+            currentBox->addChildUiComponent(new VUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), false, false));
         }
-        currentBox->addChildUiComponent(new VUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), false));
-        
     }
     
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
+        if(isLed(zone)){ addLed(String(label), zone, min, max); }
+        else{
+            if(currentBox->vertical){
+                currentBox->recommendedHeight   += kVBargraphHeight;
+                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kVBargraphWidth);
+            }
+            else{
+                currentBox->recommendedWidth    += kVBargraphWidth;
+                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVBargraphHeight);
+            }
+            currentBox->addChildUiComponent(new VUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), false, true));
+        }
+    }
+    
+    void addLed (String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max){
         if(currentBox->vertical){
-            currentBox->recommendedHeight   += kVBargraphHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kVBargraphWidth);
+            currentBox->recommendedHeight   += kLedHeight;
+            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kLedWidth);
         }
         else{
-            currentBox->recommendedWidth    += kVBargraphWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVBargraphHeight);
+            currentBox->recommendedWidth    += kLedWidth;
+            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kLedHeight);
         }
-        currentBox->addChildUiComponent(new VUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), true));
+        
+        currentBox->addChildUiComponent(new VUMeter (this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), true, false));
     }
+    
 
     virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)
     {

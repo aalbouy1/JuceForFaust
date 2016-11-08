@@ -75,7 +75,7 @@ struct uiComponent: public Component, uiItem, SettableTooltipClient
     }
 };
 
-struct uiSlider: public uiComponent,
+class uiSlider: public uiComponent,
 private juce::Slider::Listener
 {
 private:
@@ -171,7 +171,7 @@ public:
     }
 };
 
-struct uiButton: public uiComponent,
+class uiButton: public uiComponent,
 private juce::Button::Listener
 {
 private:
@@ -225,7 +225,7 @@ public:
     }
 };
 
-struct uiCheckButton: public uiComponent,
+class uiCheckButton: public uiComponent,
 private juce::Button::Listener
 {
 private:
@@ -283,28 +283,18 @@ public:
 class VUMeter  : public uiComponent, public Timer
 {
 public:
-    VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, bool vert)
-    : uiComponent(gui, zone, w, h, tooltip), min(mini), max(maxi), vertical(vert)
+    VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, bool isLed, bool vert)
+    : uiComponent(gui, zone, w, h, tooltip), min(mini), max(maxi), vertical(vert), led(isLed)
     {
         level = 0;
         startTimer (50);
         this->unit = unit;
+        (unit == "dB") ? db = true : db = false;
+        fScaleMin = dB2Scale(min);
+        fScaleMax = dB2Scale(max);
         
         if(tooltipText.isNotEmpty()){ setTooltip(tooltipText); }
         setupTextEditor();
-        
-        // Set tresholds here, need to be included in [0;1]
-        orangeTreshold = 0.75f;
-        redTreshold = 0.9f;
-    }
-    
-    void setLevel(){
-        float rawLevel = *fZone;
-        TE.setText(String(rawLevel*100.0f/100.0f)+unit);
-        
-        newLevel = (rawLevel-min)/(max-min);
-        if(level > 1){ newLevel = 1; }
-        else if(level < 0){ newLevel = 0; }
     }
     
     void timerCallback() override
@@ -312,7 +302,6 @@ public:
         if (isShowing())
         {
             setLevel();
-            level = newLevel;
             repaint();
         }
         else
@@ -323,9 +312,13 @@ public:
     
     void paint (Graphics& g) override
     {
-        if(vertical){   drawVBargraph (g, kVBargraphWidth/2 , getHeight(), (float) exp (log (level) / 3.0)); }
-        else{           drawHBargraph (g, getWidth(), kHBargraphHeight, (float) exp (log (level) / 3.0)); }
-        // (add a bit of a skew to make the level more obvious)
+        if(led){ drawLed (g, kLedWidth, kLedHeight, level); }
+        else{
+            if(db){
+                if(vertical){   drawVBargraphDB (g, kVBargraphWidth/2 , getHeight(), level); }
+                else{           drawHBargraphDB (g, getWidth(), kHBargraphHeight, level); }
+            }
+        }
     }
     
     void resized() override{
@@ -339,82 +332,197 @@ public:
     }
     
 private:
-    float level, newLevel;
+    float level;
     float min, max;
-    bool vertical;
-    float orangeTreshold, redTreshold;
+    float fScaleMin, fScaleMax;
+    bool vertical, db, led;
     String unit;
-    TextEditor TE;
+    Label label;
     
     void setTextEditorPos(){
-        if(vertical){   TE.setBounds((getWidth()-75)/2, getHeight()-22, 75, 20); }
-        else{           TE.setBounds((getWidth()-75)/2, getHeight()-22, 75, 20); }
+        if(vertical){ label.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
+        //else{           label.setBounds((getWidth()-75)/2, getHeight()-22, 75, 20); } // todo
     }
     
     void setupTextEditor(){
-        setTextEditorPos();        
-        TE.setMultiLine(false);
-        TE.setReadOnly(true);
-        TE.setText(String(*fZone) + unit);
+        setTextEditorPos();
+        label.setEditable(false, false, false);
+        label.setJustificationType(Justification::centred);
+        label.setText(String((int)*fZone) + unit, dontSendNotification);
+        if(tooltipText.isNotEmpty()){ label.setTooltip(tooltipText); }
         
-        addAndMakeVisible(TE);
+        addAndMakeVisible(label);
     }
     
-    void drawHBargraph(Graphics& g, int width, int height, float level){
+    void drawHBargraphDB(Graphics& g, int width, int height, float level){
         float x = (float)(getWidth()-width)/2;
-        float y = (float) getHeight()-height;
+        float y = (float)(getHeight()-height)/2;
         
-        g.setColour(Colours::black);
+        g.setColour(Colours::lightgrey);
         g.fillRect(x, y, (float) width, (float) height);
-        g.setColour(Colours::white);
+        g.setColour(Colours::black);
         g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
         
+        // Drawing Scale
+        g.setFont(9.0f);
+        g.setColour(Colours::white);
+        for(int i = -10; i > min; i -= 10){ paintScale(g, i); }
+        for(int i = -6; i < max; i += 3)  { paintScale(g, i); }
         
-        if(level > 1){ level = 1; }
-        else if(level < 0){ level = 0; }
+        int alpha = 200;
         
-        if(level >= 0.0f && level <= 1.0f){
-            g.setColour(Colours::green.withAlpha(0.8f));
-            g.fillRect(x+1.0f, y+1.0f, (float) level*(width-2), (float) height-2);
-            
-            if(level > orangeTreshold){
-                g.setColour(Colours::orange.withAlpha(0.8f));
-                g.fillRect((float) (orangeTreshold * (width-2)) + x+1.0f, y+1.0f, (float)(level-orangeTreshold) * (width - 2), (float) height-2);
-            }
-            if(level > redTreshold){
-                g.setColour(Colours::red.withAlpha(0.8f));
-                g.fillRect((float) (redTreshold * (width-2)) + x+1.0f, y+1.0f, (float)(level-redTreshold) * (width - 2), (float) height-2);
-            }
+        g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
+        g.fillRect(dB2x(min), y+1.0f, jmin(dB2x(level), dB2x(-10)), (float) height-2);
+        
+        if(dB2Scale(level) > dB2Scale(-10)){
+            g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
+            g.fillRect(dB2x(-10), y+1.0f, jmin(dB2x(level)-dB2x(-10), dB2x(-6)-dB2x(-10)), (float) height-2);
+        }
+        if(dB2Scale(level) > dB2Scale(-6)){
+            g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
+            g.fillRect(dB2x(-6), y+1.0f, jmin(dB2x(level)-dB2x(-6), dB2x(-3)-dB2x(-6)), (float) height-2);
+        }
+        if(dB2Scale(level) > dB2Scale(-3)){
+            g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
+            g.fillRect(dB2x(-3), y+1.0f, jmin(dB2x(level)-dB2x(-3), dB2x(0)-dB2x(-3)), (float) height-2);
+        }
+        if(dB2Scale(level) > dB2Scale(0)){
+            g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
+            g.fillRect(dB2x(0), y+1.0f, jmin(dB2x(level)-dB2x(0), dB2x(max)-dB2x(0)), (float) height-2);
         }
     }
     
-    void drawVBargraph(Graphics& g, int width, int height, float level){
+    void drawVBargraphDB(Graphics& g, int width, int height, float level){
         float x = (float)(getLocalBounds().getWidth()-width)/2;
         float y = (float) getLocalBounds().getHeight()-height+15;
         height -= 40;
         
-        g.setColour(Colours::black);
+        g.setColour(Colours::lightgrey);
         g.fillRect(x, y, (float) width, (float) height);
-        g.setColour(Colours::white);
+        g.setColour(Colours::black);
         g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
         
+        // Label window
+        g.setColour(Colours::darkgrey);
+        g.fillRect((getWidth()-50)/2-1, getHeight()-23, 52, 22);
+        g.setColour(Colours::white.withAlpha(0.8f));
+        g.fillRect((getWidth()-50)/2, getHeight()-22, 50, 20);
         
-        if(level > 1.0f){ level = 1.0f; }
-        else if(level < 0.0f){ level = 0.0f; }
+        // Drawing Scale
+        g.setFont(9.0f);
+        g.setColour(Colours::white);
+        for(int i = -10; i > min; i -= 10){ paintScale(g, i); }
+        for(int i = -6; i < max; i += 3)  { paintScale(g, i); }
         
-        if(level >= 0.0f && level <= 1.0f){
-            g.setColour(Colours::green.withAlpha(0.8f));
-            g.fillRect(x+1.0f, (float) (1.0f-level)*(height-2) + y+1.0f, (float) width-2, (float) level*(height-2));
-            
-            if(level > orangeTreshold){
-                g.setColour(Colours::orange.withAlpha(0.8f));
-                g.fillRect(x+1.0f, (float) (1.0f-level) * (height-2) + y+1.0f, (float) width-2, (float)(level-orangeTreshold) * (height - 2));
-            }
-            if(level > redTreshold){
-                g.setColour(Colours::red.withAlpha(0.8f));
-                g.fillRect(x+1.0f, (float) (1.0f-level) * (height-2) + y+1.0f, (float) width-2, (float)(level-redTreshold) * (height - 2));
-            }
+        
+        int alpha = 200;
+        g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
+        g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-10)), (float) width-2, dB2y(min)-jmax(dB2y(level), dB2y(-10)));
+        
+        if(dB2Scale(level) > dB2Scale(-10)){
+            g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
+            g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-6)), (float) width-2, dB2y(-10)-jmax(dB2y(level), dB2y(-6)));
         }
+        if(dB2Scale(level) > dB2Scale(-6)){
+            g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
+            g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-3)), (float) width-2, dB2y(-6)-jmax(dB2y(level), dB2y(-3)));
+        }
+        if(dB2Scale(level) > dB2Scale(-3)){
+            g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
+            g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(0)), (float) width-2, dB2y(-3)-jmax(dB2y(level), dB2y(0)));
+        }
+        if(dB2Scale(level) > dB2Scale(0)){
+            g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
+            g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(max)), (float) width-2, dB2y(0)-jmax(dB2y(level), dB2y(max)));
+        }
+    }
+    
+    void drawLed(Graphics& g, int width, int height, float level){
+        float x = (float) getLocalBounds().getX();
+        float y = (float) getLocalBounds().getY();
+        g.setColour(Colours::black);
+        g.fillEllipse(x, y, kLedWidth, kLedHeight);
+        if(db){
+            int alpha = 200;
+            g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
+            if(dB2Scale(level) > dB2Scale(-10)){ g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha)); }
+            if(dB2Scale(level) > dB2Scale(-6)) { g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha)); }
+            if(dB2Scale(level) > dB2Scale(-3)) { g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha)); }
+            if(dB2Scale(level) > dB2Scale(0))  { g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha)); }
+            
+            g.fillEllipse(x+1, y+1, kLedWidth-2, kLedHeight-2);
+        }
+        else{
+            g.setColour(Colours::red.withAlpha((float)level));
+            g.fillEllipse(x+1, y+1, kLedWidth-2, kLedHeight-2);
+        }
+    }
+    
+    float dB2Scale(float dB)
+    {
+        float fScale = 1.0;
+        
+         if (dB < -60.0)
+             fScale = (dB + 70.0) * 0.0025;
+         else if (dB < -50.0)
+             fScale = (dB + 60.0) * 0.005 + 0.025;
+         else if (dB < -40.0)
+             fScale = (dB + 50.0) * 0.0075 + 0.075;
+         else if (dB < -30.0)
+             fScale = (dB + 40.0) * 0.015 + 0.15;
+         else if (dB < -20.0)
+             fScale = (dB + 30.0) * 0.02 + 0.3;
+         else if (dB < -0.001 || dB > 0.001)  /* if (dB < 0.0) */
+             fScale = (dB + 20.0f) * 0.025 + 0.5;
+        
+        return fScale;
+    }
+    
+    float dB2y(float dB)
+    {
+        FAUSTFLOAT s0 = fScaleMin;
+        FAUSTFLOAT s1 = fScaleMax;
+        FAUSTFLOAT sx = dB2Scale(dB);
+        int    h = getHeight()-42;
+        return (h - h*(s0-sx)/(s0-s1))+16;
+    }
+    
+    float dB2x(float dB)
+    {
+        FAUSTFLOAT s0 = fScaleMin;
+        FAUSTFLOAT s1 = fScaleMax;
+        FAUSTFLOAT sx = dB2Scale(dB);
+        int    w = getWidth()-2;
+        std::cout<<"dB2x("<<dB<<") = "<<w - w*(s1-sx)/(s1-s0)<<std::endl;
+        return w - w*(s1-sx)/(s1-s0)+1;
+    }
+    
+    void paintScale(Graphics& g, int num){
+        if(vertical){
+            Rectangle<int> r = Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2, dB2y(num)-10, (kVBargraphWidth/2)-2, 20);
+            g.drawText(String(num), r, Justification::centredRight, false);
+        }
+        else{
+            Rectangle<int> r = Rectangle<int>(dB2x(num)-10,(getHeight()-kHBargraphHeight)/2 +1, 20, kHBargraphHeight-2);
+            g.drawText(String(num), r, Justification::centredTop, false);
+        }
+    }
+    
+    void setLevel(){
+        float rawLevel = *fZone;
+        
+        if(db){
+            level = rawLevel;
+            if(level > max)     { level = max; }
+            else if(level < min){ level = min; }
+        }
+        else{
+            level = (rawLevel-min)/(max-min);
+            if(level > 1)       { level = 1; }
+            else if(level < 0)  { level = 0; }
+        }
+        
+        label.setText(String((int)rawLevel)+unit, dontSendNotification);
     }
 };
 
