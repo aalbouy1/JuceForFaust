@@ -31,6 +31,9 @@
 #define kNumEntryWidth 100
 #define kNumEntryHeight 50
 
+#define kNumDisplayWidth 75
+#define kNumDisplayHeight 50
+
 #define kVBargraphWidth 60
 #define kVBargraphHeight 250
 
@@ -215,6 +218,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         if(isLed(zone)){ addLed(String(label), zone, min, max); }
+        else if(isNumerical(zone)){ }
         else{
             if(currentBox->vertical){
                 currentBox->recommendedHeight   += kHBargraphHeight;
@@ -224,13 +228,14 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
                 currentBox->recommendedWidth    += kHBargraphWidth;
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHBargraphHeight);
             }
-            currentBox->addChildUiComponent(new VUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), false, false));
+            currentBox->addChildUiComponent(new VUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), HVUMeter, false));
         }
     }
     
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         if(isLed(zone)){ addLed(String(label), zone, min, max); }
+        else if(isNumerical(zone)){ addNumericalDisplay(String(label), zone, min, max); }
         else{
             if(currentBox->vertical){
                 currentBox->recommendedHeight   += kVBargraphHeight;
@@ -240,7 +245,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
                 currentBox->recommendedWidth    += kVBargraphWidth;
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVBargraphHeight);
             }
-            currentBox->addChildUiComponent(new VUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), false, true));
+            currentBox->addChildUiComponent(new VUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), VVUMeter, true));
         }
     }
     
@@ -254,7 +259,20 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kLedHeight);
         }
         
-        currentBox->addChildUiComponent(new VUMeter (this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), true, false));
+        currentBox->addChildUiComponent(new VUMeter (this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), Led, false));
+    }
+    
+    void addNumericalDisplay(String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max){
+        if(currentBox->vertical){
+            currentBox->recommendedHeight   += kNumDisplayHeight;
+            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kNumDisplayWidth);
+        }
+        else{
+            currentBox->recommendedWidth    += kNumDisplayWidth;
+            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kNumDisplayHeight);
+        }
+        
+        currentBox->addChildUiComponent(new VUMeter (this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), NumDisplay, false));
     }
     
 
@@ -276,6 +294,11 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     void resized(){
         if(tabLayout){ tabs.setBounds(getLocalBounds()); }
         else{ dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds()); }
+    }
+    
+    ~Faust_layout(){
+        delete currentBox;
+        delete parentBox;
     }
     
     int order;

@@ -17,11 +17,18 @@
 
 class faustBox;
 
-enum sliderType{
+enum SliderType{
     HSlider,
     VSlider,
     NumEntry,
     Knob
+};
+
+enum VUMeterType{
+    HVUMeter,
+    VVUMeter,
+    Led,
+    NumDisplay
 };
 
 struct uiComponent: public Component, uiItem, SettableTooltipClient
@@ -29,10 +36,6 @@ struct uiComponent: public Component, uiItem, SettableTooltipClient
     float vRatio, hRatio;
     int recomWidth, recomHeight;
     String tooltipText;
-    
-    Slider slider;
-    TextButton button;
-    ToggleButton checkButton;
     
     void setCompSize(Rectangle<int> r){
         std::cout<<"New bounds of Component : {"<<r.toString()<<"}";
@@ -85,10 +88,11 @@ private:
     String sliderName;
     ScopedPointer<ValueConverter> fConverter;
     int x, y, width, height;
-    sliderType type;
+    SliderType type;
+    Slider slider;
     
 public:
-    uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, sliderType kType) : uiComponent(gui, zone, w, h, tooltip), sliderName(name), type(kType)
+    uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType kType) : uiComponent(gui, zone, w, h, tooltip), sliderName(name), type(kType)
     {
         if (scale == MetaDataUI::kLog) 		{ fConverter = new LogValueConverter(min, max, min, max);   }
         else if (scale == MetaDataUI::kExp) { fConverter = new ExpValueConverter(min, max, min, max);   }
@@ -136,7 +140,7 @@ public:
     
     virtual void paint(Graphics& g) override{
         g.setColour (Colours::black);
-        if(type == Knob || type == VSlider) { g.drawText(sliderName, slider.getLocalBounds(), Justification::centredTop); }
+        if(type == Knob || type == VSlider) { g.drawText(sliderName, getParentComponent()->getLocalBounds().withTrimmedTop(9), Justification::centredTop); }
     }
 
     void reflectZone() override
@@ -164,8 +168,8 @@ public:
             x = (getLocalBounds().reduced(3).getWidth()-width)/2; y = (getLocalBounds().reduced(3).getHeight()-height)/2;
         }
         else{
-            x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+10;
-            height = getLocalBounds().reduced(3).getHeight()-20; width = getLocalBounds().reduced(3).getWidth();
+            x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+15;
+            height = getLocalBounds().reduced(3).getHeight()-25; width = getLocalBounds().reduced(3).getWidth();
         }
         slider.setBounds(x, y, width, height);
     }
@@ -178,6 +182,7 @@ private:
     
     String name;
     int x, y, width, height;
+    TextButton button;
     
 public:
     uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
@@ -232,6 +237,7 @@ private:
     
     String name;
     int x, y, width, height;
+    ToggleButton checkButton;
     
 public:
     uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
@@ -255,8 +261,8 @@ public:
     
     void buttonStateChanged (Button* button) override
     {
-        if(button->isDown()) { modifyZone(1.0); }
-        else { modifyZone(0.0); }
+        std::cout<<name<<" : "<<button->getToggleState()<<std::endl;
+        modifyZone(button->getToggleState());
     }
     
     void reflectZone() override
@@ -283,8 +289,8 @@ public:
 class VUMeter  : public uiComponent, public Timer
 {
 public:
-    VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, bool isLed, bool vert)
-    : uiComponent(gui, zone, w, h, tooltip), min(mini), max(maxi), vertical(vert), led(isLed)
+    VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, VUMeterType style, bool vert)
+    : uiComponent(gui, zone, w, h, tooltip), min(mini), max(maxi), fStyle(style)
     {
         level = 0;
         startTimer (50);
@@ -294,7 +300,7 @@ public:
         fScaleMax = dB2Scale(max);
         
         if(tooltipText.isNotEmpty()){ setTooltip(tooltipText); }
-        setupTextEditor();
+        if(fStyle != Led){ setupTextEditor(); }
     }
     
     void timerCallback() override
@@ -312,11 +318,12 @@ public:
     
     void paint (Graphics& g) override
     {
-        if(led){ drawLed (g, kLedWidth, kLedHeight, level); }
+        if(fStyle == Led){ drawLed (g, kLedWidth, kLedHeight, level); }
+        else if(fStyle == NumDisplay){ drawNumDisplay(g, kNumDisplayWidth, kNumDisplayHeight, level); }
         else{
             if(db){
-                if(vertical){   drawVBargraphDB (g, kVBargraphWidth/2 , getHeight(), level); }
-                else{           drawHBargraphDB (g, getWidth(), kHBargraphHeight, level); }
+                if(fStyle == VVUMeter){ drawVBargraphDB (g, kVBargraphWidth/2 , getHeight(), level); }
+                else{                   drawHBargraphDB (g, getWidth(), kHBargraphHeight, level); }
             }
         }
     }
@@ -335,13 +342,15 @@ private:
     float level;
     float min, max;
     float fScaleMin, fScaleMax;
-    bool vertical, db, led;
+    bool db;
+    VUMeterType fStyle;
     String unit;
     Label label;
     
     void setTextEditorPos(){
-        if(vertical){ label.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
-        //else{           label.setBounds((getWidth()-75)/2, getHeight()-22, 75, 20); } // todo
+        if(fStyle == VVUMeter)        { label.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
+        else if(fStyle == NumDisplay) { label.setBounds(getLocalBounds().getX(), (getLocalBounds().getHeight()-kNumDisplayHeight/2+11)/2, jmax(1,jmin(kNumDisplayWidth, getWidth())), kNumDisplayHeight/2); }
+        //else                          { label.setBounds((getWidth()-75)/2, getHeight()-22, 75, 20); } // todo
     }
     
     void setupTextEditor(){
@@ -448,7 +457,7 @@ private:
             if(dB2Scale(level) > dB2Scale(-10)){ g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha)); }
             if(dB2Scale(level) > dB2Scale(-6)) { g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha)); }
             if(dB2Scale(level) > dB2Scale(-3)) { g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha)); }
-            if(dB2Scale(level) > dB2Scale(0))  { g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha)); }
+            if(dB2Scale(level) > dB2Scale(0))  { g.setColour(Colour((uint8)240, (uint8)0,   (uint8)20, (uint8)alpha)); }
             
             g.fillEllipse(x+1, y+1, kLedWidth-2, kLedHeight-2);
         }
@@ -456,6 +465,16 @@ private:
             g.setColour(Colours::red.withAlpha((float)level));
             g.fillEllipse(x+1, y+1, kLedWidth-2, kLedHeight-2);
         }
+    }
+    
+    void drawNumDisplay(Graphics& g, int width, int height, float level){
+        int x = getLocalBounds().getX();
+        int y = (getLocalBounds().getHeight()-kNumDisplayHeight/2+11)/2;
+        //Draw box
+        g.setColour(Colours::darkgrey);
+        g.fillRect(x, y, jmax(1,jmin(kNumDisplayWidth, getWidth())), kNumDisplayHeight/2);
+        g.setColour(Colours::white.withAlpha(0.8f));
+        g.fillRect(x+1, y+1, jmax(1,jmin(kNumDisplayWidth, getWidth()))-2, kNumDisplayHeight/2-2);
     }
     
     float dB2Scale(float dB)
@@ -493,12 +512,11 @@ private:
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
         int    w = getWidth()-2;
-        std::cout<<"dB2x("<<dB<<") = "<<w - w*(s1-sx)/(s1-s0)<<std::endl;
         return w - w*(s1-sx)/(s1-s0)+1;
     }
     
     void paintScale(Graphics& g, int num){
-        if(vertical){
+        if(fStyle == VVUMeter){
             Rectangle<int> r = Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2, dB2y(num)-10, (kVBargraphWidth/2)-2, 20);
             g.drawText(String(num), r, Justification::centredRight, false);
         }

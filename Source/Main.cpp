@@ -63,16 +63,15 @@ public:
     class myViewport : public Viewport
     {
     public:
-        myViewport(String name, int w, int h): Viewport(name), minWidth(w), minHeight(h)
+        myViewport(String name, int w, int h, int rW, int rH): Viewport(name), minWidth(w), minHeight(h), recommendedWidth(rW), recommendedHeight(rH)
         {
         }
         
         virtual void resized() override{
             Viewport::resized();
-            width = getBounds().getWidth();
-            height = getBounds().getHeight();
-            if(getBounds().getWidth()<minWidth)     { width = minWidth; }
-            if(getBounds().getHeight()<minHeight)   { height = minHeight; }
+            getBounds().getWidth() < minWidth ? ((minWidth < recommendedWidth) ? width = minWidth : width = recommendedWidth) : width = getBounds().getWidth();
+            getBounds().getHeight() < minHeight ? ((minHeight < recommendedHeight) ? height = minHeight : height = recommendedHeight) : height = getBounds().getHeight();
+            
             getViewedComponent()->setBounds(0, 0, width, height);
             addAndMakeVisible(tooltipWindow);
         }
@@ -82,6 +81,7 @@ public:
         }*/
     private:
         int minWidth, minHeight;
+        int recommendedWidth, recommendedHeight;
         int width, height;
         TooltipWindow tooltipWindow;
     };
@@ -104,7 +104,10 @@ public:
             
             int minWidth  = window->getMinSize().getWidth();
             int minHeight = window->getMinSize().getHeight();
-            viewport = new myViewport(name, minWidth, minHeight);
+            int recomWidth = window->getRecommendedSize().getWidth();
+            int recomHeight = window->getRecommendedSize().getHeight();
+            
+            viewport = new myViewport(name, minWidth, minHeight, recomWidth, recomHeight);
             viewport->setViewedComponent(window);
             viewport->setSize(minWidth, minHeight);
             setContentOwned(viewport, true);

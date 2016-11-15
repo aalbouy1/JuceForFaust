@@ -5,17 +5,26 @@
               jucerVersion="4.3.0">
   <MAINGROUP id="QPZtN1" name="Rectangle AudioApp">
     <GROUP id="{9BA54E73-8A9C-DD5D-C876-2C85CD9C7B4F}" name="Source">
-      <GROUP id="{7E9CC857-3EA1-0861-6C8B-328CCFA2FEE9}" name="DSP Files">
-        <FILE id="IDfMNs" name="cubic_distortion.h" compile="0" resource="0"
+      <GROUP id="{8663FF28-FAF1-2C71-3729-976510745DB1}" name="DSP Files">
+        <FILE id="lswOs5" name="cubic_distortion-Horiz.h" compile="0" resource="0"
+              file="Source/DSP Files/cubic_distortion-Horiz.h"/>
+        <FILE id="F58lBv" name="cubic_distortion-LED.h" compile="0" resource="0"
+              file="Source/DSP Files/cubic_distortion-LED.h"/>
+        <FILE id="AKvxDs" name="cubic_distortion-NumDisplay.h" compile="0"
+              resource="0" file="Source/DSP Files/cubic_distortion-NumDisplay.h"/>
+        <FILE id="wMx1PD" name="cubic_distortion.h" compile="0" resource="0"
               file="Source/DSP Files/cubic_distortion.h"/>
-        <FILE id="ioGqRp" name="karplus.h" compile="0" resource="0" file="Source/DSP Files/karplus.h"/>
-        <FILE id="CidygP" name="karplus32.h" compile="0" resource="0" file="Source/DSP Files/karplus32.h"/>
-        <FILE id="tGJRfq" name="karplus32bis.h" compile="0" resource="0" file="../Rectangle AudioApp - Onglet/Source/DSP Files/karplus32bis.h"/>
-        <FILE id="Fd0fti" name="karplus_synth.h" compile="0" resource="0" file="../Rectangle AudioApp - Onglet/Source/DSP Files/karplus_synth.h"/>
-        <FILE id="ZRs87E" name="kisana.h" compile="0" resource="0" file="Source/DSP Files/kisana.h"/>
-        <FILE id="x5NJex" name="matrix.h" compile="0" resource="0" file="Source/DSP Files/matrix.h"/>
-        <FILE id="spZFIz" name="noise.h" compile="0" resource="0" file="Source/DSP Files/noise.h"/>
-        <FILE id="UHCx5N" name="UITester.h" compile="0" resource="0" file="Source/DSP Files/UITester.h"/>
+        <FILE id="mhtkYG" name="karplus.h" compile="0" resource="0" file="Source/DSP Files/karplus.h"/>
+        <FILE id="BSikHZ" name="karplus_synth.h" compile="0" resource="0" file="Source/DSP Files/karplus_synth.h"/>
+        <FILE id="ZxcjL1" name="karplus32.h" compile="0" resource="0" file="Source/DSP Files/karplus32.h"/>
+        <FILE id="jIAyPT" name="karplus32bis.h" compile="0" resource="0" file="Source/DSP Files/karplus32bis.h"/>
+        <FILE id="RobMd3" name="kisana - copie.h" compile="0" resource="0"
+              file="Source/DSP Files/kisana - copie.h"/>
+        <FILE id="XdFnJ2" name="kisana.h" compile="0" resource="0" file="Source/DSP Files/kisana.h"/>
+        <FILE id="fFg01y" name="matrix.h" compile="0" resource="0" file="Source/DSP Files/matrix.h"/>
+        <FILE id="IXaaRh" name="noise.h" compile="0" resource="0" file="Source/DSP Files/noise.h"/>
+        <FILE id="uSCzWs" name="poly-dsp.h" compile="0" resource="0" file="Source/DSP Files/poly-dsp.h"/>
+        <FILE id="sWAHKD" name="UITester.h" compile="0" resource="0" file="Source/DSP Files/UITester.h"/>
       </GROUP>
       <FILE id="BZxKq4" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="CPyMHp" name="UI_Component.h" compile="0" resource="0" file="Source/UI_Component.h"/>

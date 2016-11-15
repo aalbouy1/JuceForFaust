@@ -24,8 +24,9 @@
 //#include "DSP Files/karplus32bis.h"           //OK
 //#include "DSP Files/UITester.h"               //ALMOST OK
 //#include "DSP Files/cubic_distortion.h"       //OK
+#include "DSP Files/cubic_distortion-NumDisplay.h"   //OK
 //#include "DSP Files/cubic_distortion-LED.h"   //OK
-#include "DSP Files/cubic_distortion-Horiz.h"
+//#include "DSP Files/cubic_distortion-Horiz.h" //OK
 
 //#include "faust/dsp/poly-dsp.h"
 
@@ -110,6 +111,11 @@ public:
     }
 
     Rectangle<int> getMinSize(){
+        //return recommendedSize;
+        return Rectangle<int>(0, 0, jmin(recommendedSize.getWidth(), screenWidth), jmin(recommendedSize.getHeight(), screenHeight));
+    }
+
+    Rectangle<int> getRecommendedSize(){
         return recommendedSize;
     }
 
@@ -118,8 +124,10 @@ private:
 
     ScopedPointer<dsp> fDSP;
 
-    int width, height;
     Rectangle<int> recommendedSize;
+    Rectangle<int> r = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
+    int screenWidth  = r.getWidth();
+    int screenHeight = r.getHeight();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
