@@ -286,6 +286,96 @@ public:
     }
 };
 
+class uiMenu: public uiComponent,
+private juce::ComboBox::Listener
+{
+private:
+    ComboBox fComboBox;
+    String name;
+    int x, y, width, height;
+    int nbItem;
+    vector<double> fValues;
+    
+public:
+    uiMenu(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, String tooltip, const char* mdescr) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
+    {
+        //Init ComboBox parameters
+        fComboBox.setEditableText(false);
+        fComboBox.setJustificationType(Justification::centred);
+        fComboBox.addListener(this);
+        addAndMakeVisible(fComboBox);
+        /*
+        auto fLabel = new Label (name, name);
+        fLabel->attachToComponent(&fComboBox, false);
+        addAndMakeVisible(fLabel);
+        */
+        vector<string>  names;
+        vector<double>  values;
+        
+        if (parseMenuList(mdescr, names, values)) {
+            
+            int     defaultitem = -1;
+            double  mindelta = FLT_MAX;
+            
+            for (int i = 0; i < names.size(); i++) {
+                double v = values[i];
+                if ( (v >= lo) && (v <= hi) ) {
+                    
+                    // It is a valid value : add corresponding menu item
+                    fComboBox.addItem(String(names[i].c_str()), v+1);
+                    fValues.push_back(v);
+                    
+                    // Check if this item is a good candidate to represent the current value
+                    double delta = fabs(cur-v);
+                    if (delta < mindelta) {
+                        mindelta = delta;
+                        defaultitem = fComboBox.getNumItems();
+                    }
+                }
+            }
+            // check the best candidate to represent the current value
+            if (defaultitem > -1) { fComboBox.setSelectedItemIndex(defaultitem); }
+        }
+        
+        *fZone = cur;
+    }
+    
+    void comboBoxChanged (ComboBox* cb) override
+    {
+        std::cout<<name<<" : "<<cb->getSelectedId() - 1<<std::endl;
+        modifyZone(cb->getSelectedId() - 1);
+    }
+    
+    virtual void reflectZone()
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+        
+        // search closest value
+        int             defaultitem = -1;
+        double          mindelta = FLT_MAX;
+        
+        for (unsigned int i=0; i<fValues.size(); i++) {
+            double delta = fabs(fValues[i]-v);
+            if (delta < mindelta) {
+                mindelta = delta;
+                defaultitem = i;
+            }
+        }
+        if (defaultitem > -1) { fComboBox.setSelectedItemIndex(defaultitem); }
+    }
+    
+    virtual void resized(){
+        fComboBox.setBounds(1, getLocalBounds().getHeight()*0.75 - height/4, getWidth()-2, height/2);
+    }
+    
+    virtual void paint(Graphics& g){
+        g.setColour(Colours::black);
+        g.drawText(name, getLocalBounds().withHeight(getLocalBounds().getHeight()/2), Justification::centredTop);
+    }
+};
+
+
 class uiRadioButton: public uiComponent,
 private juce::Button::Listener
 {
@@ -367,12 +457,16 @@ public:
     }
     
     virtual void resized(){
+        vertical ? height = (getLocalBounds().getHeight()-25) / nbButtons : width = getLocalBounds().getWidth() / nbButtons;
         for(int i = 0; i < nbButtons; i++){
-            if(vertical){ fButtons.operator[](i)->setBounds(3, i * 22, width, height); }
-            else{ fButtons.operator[](i)->setBounds(i * width +2, 3, width, height); }
+            if(vertical){ fButtons.operator[](i)->setBounds(0, i * height + 25, 100, height); }
+            else{ fButtons.operator[](i)->setBounds(i * width, 25, width, 30); }
         }
     }
-    virtual void paint(Graphics& g){ }
+    virtual void paint(Graphics& g){
+        g.setColour(Colours::black);
+        g.drawText(name, getLocalBounds().withHeight(25), Justification::centredTop);
+    }
     
     void buttonClicked(Button* button)
     {
