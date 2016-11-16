@@ -384,7 +384,7 @@ private:
     int x, y, width, height;
     int nbButtons;
     bool vertical;
-    Array<ToggleButton*> fButtons;
+    OwnedArray<ToggleButton> fButtons;
     vector<double> fValues;
     
 public:
