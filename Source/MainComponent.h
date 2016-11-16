@@ -24,9 +24,10 @@
 //#include "DSP Files/karplus32bis.h"           //OK
 //#include "DSP Files/UITester.h"               //ALMOST OK
 //#include "DSP Files/cubic_distortion.h"       //OK
-#include "DSP Files/cubic_distortion-NumDisplay.h"   //OK
+//#include "DSP Files/cubic_distortion-NumDisplay.h"   //OK
 //#include "DSP Files/cubic_distortion-LED.h"   //OK
 //#include "DSP Files/cubic_distortion-Horiz.h" //OK
+#include "DSP Files/tester2.h"
 
 //#include "faust/dsp/poly-dsp.h"
 

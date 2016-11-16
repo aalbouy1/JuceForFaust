@@ -24,6 +24,7 @@
         <FILE id="fFg01y" name="matrix.h" compile="0" resource="0" file="Source/DSP Files/matrix.h"/>
         <FILE id="IXaaRh" name="noise.h" compile="0" resource="0" file="Source/DSP Files/noise.h"/>
         <FILE id="uSCzWs" name="poly-dsp.h" compile="0" resource="0" file="Source/DSP Files/poly-dsp.h"/>
+        <FILE id="ZmOqNi" name="tester2.h" compile="0" resource="0" file="Source/DSP Files/tester2.h"/>
         <FILE id="sWAHKD" name="UITester.h" compile="0" resource="0" file="Source/DSP Files/UITester.h"/>
       </GROUP>
       <FILE id="BZxKq4" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>

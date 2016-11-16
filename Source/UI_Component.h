@@ -61,11 +61,11 @@ struct uiComponent: public Component, uiItem, SettableTooltipClient
         return recomWidth;
     }
     
-    void setVRatio(float ratio){
+    virtual void setVRatio(float ratio){
         vRatio = ratio;
     }
     
-    void setHRatio(float ratio){
+    virtual void setHRatio(float ratio){
         hRatio = ratio;
     }
     
@@ -240,7 +240,7 @@ private:
     ToggleButton checkButton;
     
 public:
-    uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
+    uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
     {
         x = roundToInt(getLocalBounds().getX() + 10);
         y = roundToInt((getLocalBounds().getHeight()-kCheckButtonHeight)/2);
@@ -283,6 +283,103 @@ public:
         x = roundToInt(getLocalBounds().getX()+10);
         y = roundToInt((getLocalBounds().getHeight()-kCheckButtonHeight)/2);
         checkButton.setBounds(x, y, width, kCheckButtonHeight);
+    }
+};
+
+class uiRadioButton: public uiComponent,
+private juce::Button::Listener
+{
+private:
+    String name;
+    int x, y, width, height;
+    int nbButtons;
+    bool vertical;
+    Array<ToggleButton*> fButtons;
+    vector<double> fValues;
+    
+public:
+    uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, const char* mdescr, int radioGroupID) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h), vertical(vert)
+    {
+        x = roundToInt(getLocalBounds().getX() + 10);
+        y = roundToInt((getLocalBounds().getHeight()-kCheckButtonHeight)/2);
+        
+        {
+            ToggleButton*   defaultbutton = 0;
+            double          mindelta = FLT_MAX;
+            
+            nbButtons = names.size();
+            for(int i = 0; i < nbButtons; i++){
+                double v = values[i];
+                
+                if ((v >= lo) && (v <= hi)) {
+                    
+                    // It is a valid value included in slider's range
+                    ToggleButton* tb = new ToggleButton(names[i]);
+                    addAndMakeVisible(tb);
+                    tb->setRadioGroupId (radioGroupID);
+                    tb->addListener(this);
+                    fValues.push_back(v);
+                    fButtons.add(tb);
+                    
+                    if(tooltipText.isNotEmpty()){ tb->setTooltip(tooltipText); }
+                    // Check if this item is a good candidate to represent the current value
+                    double delta = fabs(cur-v);
+                    if (delta < mindelta) {
+                        mindelta = delta;
+                        defaultbutton = tb;
+                    }
+                }
+            }
+            // check the best candidate to represent the current value
+            if (defaultbutton) { defaultbutton->setToggleState (true, dontSendNotification); }
+        }
+    }
+    
+    void setVRatio(float ratio) override
+    {
+        if(vertical){ vRatio = ratio * nbButtons; }
+        else{ vRatio = ratio; }
+    }
+    
+    void setHRatio(float ratio) override
+    {
+        if(!vertical){ hRatio = ratio * nbButtons; }
+        else{ hRatio = ratio; }
+    }
+    
+    virtual void reflectZone()
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+        
+        // select closest value
+        int             defaultitem = -1;
+        double          mindelta = FLT_MAX;
+        
+        for (unsigned int i=0; i<fValues.size(); i++) {
+            double delta = fabs(fValues[i]-v);
+            if (delta < mindelta) {
+                mindelta = delta;
+                defaultitem = i;
+            }
+        }
+        if (defaultitem > -1) { fButtons.operator[](defaultitem)->setToggleState (true, dontSendNotification); }
+    }
+    
+    virtual void resized(){
+        for(int i = 0; i < nbButtons; i++){
+            if(vertical){ fButtons.operator[](i)->setBounds(3, i * 22, width, height); }
+            else{ fButtons.operator[](i)->setBounds(i * width +2, 3, width, height); }
+        }
+    }
+    virtual void paint(Graphics& g){ }
+    
+    void buttonClicked(Button* button)
+    {
+        ToggleButton* checkButton = dynamic_cast<ToggleButton*>(button);
+        std::cout<<name<<" : "<<fButtons.indexOf(checkButton)<<std::endl;
+        
+        modifyZone(fButtons.indexOf(checkButton));
     }
 };
 

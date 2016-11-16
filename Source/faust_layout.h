@@ -59,6 +59,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     {
         boxNumber = 0;
         order = 0;
+        radioGroup = 0;
     }
     
     void setSize(Rectangle<int> r){
@@ -128,6 +129,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         if(isKnob(zone)){ addKnob(label, zone, init, min, max, step); }
+        else if(isRadio(zone)){ addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), false); }
         else{
             if(currentBox->vertical){
                 currentBox->recommendedHeight   += kHSliderHeight;
@@ -144,6 +146,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){
         if(isKnob(zone)){ addKnob(label, zone, init, min, max, step); }
+        else if(isRadio(zone)){ addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), true); }
         else{
             if(currentBox->vertical){
                 currentBox->recommendedHeight   += kVSliderHeight;
@@ -157,6 +160,37 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox->addChildUiComponent(new uiSlider(this, zone, kVSliderWidth, kVSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), VSlider));
             
         }
+    }
+    
+    void addRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr, bool vert){
+        vector<string> names;
+        vector<double> values;
+        parseMenuList(mdescr, names, values);
+        int nbButtons = names.size();
+        radioGroup++;
+        
+        if(currentBox->vertical){
+            if(vert){
+                currentBox->recommendedHeight   += nbButtons * kCheckButtonHeight;
+                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kCheckButtonWidth);
+            }
+            else{
+                currentBox->recommendedHeight   += kCheckButtonHeight;
+                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, nbButtons * kCheckButtonWidth);
+            }
+        }
+        else{
+            if(vert){
+                currentBox->recommendedWidth    += kCheckButtonWidth;
+                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, nbButtons * kCheckButtonHeight);
+            }
+            else{
+                currentBox->recommendedWidth    += nbButtons * kCheckButtonWidth;
+                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kCheckButtonHeight);
+            }
+        }
+        
+        currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kCheckButtonHeight, init, min, max, vert, names, values, String(fTooltip[zone]), mdescr, radioGroup));
     }
     
     void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){
@@ -302,6 +336,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     }
     
     int order;
+    int radioGroup;
     int boxNumber; //Need ?
     faustBox* currentBox;
     faustBox* parentBox;
