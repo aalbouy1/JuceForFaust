@@ -277,7 +277,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         if(isLed(zone)){ addLed(String(label), zone, min, max); }
-        else if(isNumerical(zone)){ }
+        else if(isNumerical(zone)){ addNumericalDisplay(String(label), zone, min, max); }
         else{
             if(currentBox->vertical){
                 currentBox->recommendedHeight   += kHBargraphHeight;

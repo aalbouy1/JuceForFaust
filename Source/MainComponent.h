@@ -14,7 +14,7 @@
 
 
 // Select here the compiled DSP that you want to execute
-//#include "DSP files/noise.h"                  //OK
+#include "DSP files/noise.h"                  //OK
 //#include "DSP files/kisana.h"                 //OK
 //#include "DSP files/kisana - copie.h"         //OK
 //#include "DSP Files/matrix.h"                 //OK
@@ -22,12 +22,12 @@
 //#include "DSP Files/karplus32.h"              //OK
 //#include "DSP Files/karplus_synth.h"          //OK
 //#include "DSP Files/karplus32bis.h"           //OK
-//#include "DSP Files/UITester.h"               //ALMOST OK
+//#include "DSP Files/UITester.h"               //OK
 //#include "DSP Files/cubic_distortion.h"       //OK
 //#include "DSP Files/cubic_distortion-NumDisplay.h"   //OK
 //#include "DSP Files/cubic_distortion-LED.h"   //OK
 //#include "DSP Files/cubic_distortion-Horiz.h" //OK
-#include "DSP Files/tester2.h"
+//#include "DSP Files/tester2.h"                //OK
 
 //#include "faust/dsp/poly-dsp.h"
 

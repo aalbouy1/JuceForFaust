@@ -94,9 +94,15 @@ private:
 public:
     uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType kType) : uiComponent(gui, zone, w, h, tooltip), sliderName(name), type(kType)
     {
-        if (scale == MetaDataUI::kLog) 		{ fConverter = new LogValueConverter(min, max, min, max);   }
-        else if (scale == MetaDataUI::kExp) { fConverter = new ExpValueConverter(min, max, min, max);   }
-        else                                { fConverter = new LinearValueConverter(min, max, min, max);}
+        if (scale == MetaDataUI::kLog) 		{
+            fConverter = new LogValueConverter(min, max, min, max);
+            slider.setSkewFactor(0.5);
+        }
+        else if (scale == MetaDataUI::kExp) {
+            fConverter = new ExpValueConverter(min, max, min, max);
+            slider.setSkewFactor(2.0);
+        }
+        else { fConverter = new LinearValueConverter(min, max, min, max);}
         
         switch(type){
             case HSlider:
@@ -140,7 +146,8 @@ public:
     
     virtual void paint(Graphics& g) override{
         g.setColour (Colours::black);
-        if(type == Knob || type == VSlider) { g.drawText(sliderName, getParentComponent()->getLocalBounds().withTrimmedTop(9), Justification::centredTop); }
+        if(type == VSlider) { g.drawText(sliderName, getParentComponent()->getLocalBounds().withTrimmedTop(9), Justification::centredTop); }
+        else if(type == Knob) { g.drawText(sliderName, getParentComponent()->getLocalBounds(), Justification::centredTop); }
     }
 
     void reflectZone() override
@@ -481,14 +488,16 @@ class VUMeter  : public uiComponent, public Timer
 {
 public:
     VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, VUMeterType style, bool vert)
-    : uiComponent(gui, zone, w, h, tooltip), min(mini), max(maxi), fStyle(style)
+    : uiComponent(gui, zone, w, h, tooltip), min(mini), max(maxi), fStyle(style), name(label)
     {
         level = 0;
         startTimer (50);
         this->unit = unit;
         (unit == "dB") ? db = true : db = false;
-        fScaleMin = dB2Scale(min);
-        fScaleMax = dB2Scale(max);
+        if(db){
+            fScaleMin = dB2Scale(min);
+            fScaleMax = dB2Scale(max);
+        }
         
         if(tooltipText.isNotEmpty()){ setTooltip(tooltipText); }
         if(fStyle != Led){ setupTextEditor(); }
@@ -514,7 +523,11 @@ public:
         else{
             if(db){
                 if(fStyle == VVUMeter){ drawVBargraphDB (g, kVBargraphWidth/2 , getHeight(), level); }
-                else{                   drawHBargraphDB (g, getWidth(), kHBargraphHeight, level); }
+                else{                   drawHBargraphDB (g, getWidth(), kHBargraphHeight/2, level);    }
+            }
+            else{
+                if(fStyle == VVUMeter){ drawVBargraphLin (g, kVBargraphWidth/2 , getHeight(), level); }
+                else{ drawHBargraphLin (g, getWidth(), kHBargraphHeight/2, level); }
             }
         }
     }
@@ -537,6 +550,7 @@ private:
     VUMeterType fStyle;
     String unit;
     Label label;
+    String name;
     
     void setTextEditorPos(){
         if(fStyle == VVUMeter)        { label.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
@@ -592,11 +606,42 @@ private:
         }
     }
     
+    void drawHBargraphLin(Graphics& g, int width, int height, float level){
+        float x = (float)(getWidth()-width)/2;
+        float y = (float)(getHeight()-height)/2;
+        
+        g.setColour(Colours::lightgrey);
+        g.fillRect(x, y, (float) width, (float) height);
+        g.setColour(Colours::black);
+        g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
+        
+        int alpha = 200;
+        Colour c = juce::Colour((uint8)255, (uint8)165, (uint8)0, (uint8)alpha);
+        
+        g.setColour(c.brighter());
+        g.fillRect(x+1.0f, y+1.0f, jmin(level*(width-2), 0.2f*(width-2)), (float) height-2);
+        
+        if(level > 0.2f){
+            g.setColour(c);
+            g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin((level-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float) height-2);
+        }
+        if(level > 0.9f){
+            g.setColour(c.darker());
+            g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin((level-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float) height-2);
+        }
+    }
+    
     void drawVBargraphDB(Graphics& g, int width, int height, float level){
         float x = (float)(getLocalBounds().getWidth()-width)/2;
-        float y = (float) getLocalBounds().getHeight()-height+15;
-        height -= 40;
+        float y = (float) getLocalBounds().getHeight()-height+25;
+        height -= 50;
         
+        // VUMeter Name
+        g.setColour(Colours::black);
+        if(!(name.startsWith("0x")) && name.isNotEmpty())
+            g.drawText(name, getLocalBounds().translated(0, 10), Justification::centredTop);
+        
+        // VUMeter Background
         g.setColour(Colours::lightgrey);
         g.fillRect(x, y, (float) width, (float) height);
         g.setColour(Colours::black);
@@ -634,6 +679,45 @@ private:
         if(dB2Scale(level) > dB2Scale(0)){
             g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
             g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(max)), (float) width-2, dB2y(0)-jmax(dB2y(level), dB2y(max)));
+        }
+    }
+    
+    void drawVBargraphLin(Graphics& g, int width, int height, float level){
+        float x = (float)(getLocalBounds().getWidth()-width)/2;
+        float y = (float) getLocalBounds().getHeight()-height+25;
+        height -= 50;
+        
+        // VUMeter Name
+        g.setColour(Colours::black);
+        if(!(name.startsWith("0x")) && name.isNotEmpty())
+            g.drawText(name, getLocalBounds().translated(0, 10), Justification::centredTop);
+        
+        // VUMeter Background
+        g.setColour(Colours::lightgrey);
+        g.fillRect(x, y, (float) width, (float) height);
+        g.setColour(Colours::black);
+        g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
+        
+        // Label window
+        g.setColour(Colours::darkgrey);
+        g.fillRect((getWidth()-50)/2-1, getHeight()-23, 52, 22);
+        g.setColour(Colours::white.withAlpha(0.8f));
+        g.fillRect((getWidth()-50)/2, getHeight()-22, 50, 20);
+        
+        int alpha = 200;
+        Colour c = juce::Colour((uint8)255, (uint8)165, (uint8)0, (uint8)alpha);
+        
+        g.setColour(c.brighter());
+        g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.2f)), (float) width-2, lin2y(min)-jmax(lin2y(level), lin2y(0.2f)));
+        
+        if(level > 0.2f){
+            g.setColour(c);
+            g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.9f)), (float) width-2, lin2y(0.2f)-jmax(lin2y(level), lin2y(0.9f)));
+        }
+        
+        if(level > 0.9f){
+            g.setColour(c.darker());
+            g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(max)), (float) width-2, lin2y(0.9)-jmax(lin2y(level), lin2y(max)));
         }
     }
     
@@ -693,8 +777,13 @@ private:
         FAUSTFLOAT s0 = fScaleMin;
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
-        int    h = getHeight()-42;
-        return (h - h*(s0-sx)/(s0-s1))+16;
+        int    h = getHeight()-52;
+        return (h - h*(s0-sx)/(s0-s1))+26;
+    }
+    
+    float lin2y(float level){
+        int h = getHeight() - 52;
+        return h * (1 - level) + 26.0f;
     }
     
     float dB2x(float dB)

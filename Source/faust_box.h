@@ -24,15 +24,19 @@ public:
     }
     
     void setHRatio(){
-        if(findParentComponentOfClass<faustBox>() != nullptr){
-            hRatio = (float)recommendedWidth/(float)findParentComponentOfClass<faustBox>()->recommendedWidth;
+        tempBox = findParentComponentOfClass<faustBox>();
+        if(tempBox != nullptr){
+            hRatio = (float)recommendedWidth/(float)tempBox->recommendedWidth;
         }
+        tempBox = nullptr;
     }
     
     void setVRatio(){
-        if(findParentComponentOfClass<faustBox>() != nullptr){
-            vRatio = (float)recommendedHeight/(float)findParentComponentOfClass<faustBox>()->recommendedHeight;
+        tempBox = findParentComponentOfClass<faustBox>();
+        if(tempBox != nullptr){
+            vRatio = (float)recommendedHeight/(float)tempBox->recommendedHeight;
         }
+        tempBox = nullptr;
     }
     
     void setBoxSize(Rectangle<int> r){
@@ -40,7 +44,8 @@ public:
         Rectangle::setSize(r.getWidth(), r.getHeight());
         Component::setSize(r.getWidth(), r.getHeight());
         
-        if(dynamic_cast<faustBox*>(getParentComponent()) != nullptr){
+        tempParentBox = dynamic_cast<faustBox*>(getParentComponent());
+        if(tempParentBox != nullptr){
             setPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
             setTopLeftPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
         }
@@ -54,40 +59,41 @@ public:
                 setTopLeftPosition(r.getX(), r.getY());
             }
         }
-        
+        tempParentBox = nullptr;
         originalBounds = getLocalBounds();
     }
     
     void layoutComponents()
     {
         for(int i = 0; i<getNumChildComponents(); i++){
-            uiComponent* comp = dynamic_cast<uiComponent*>(getChildComponent(i));
-            if(comp != 0){
+            tempComp = dynamic_cast<uiComponent*>(getChildComponent(i));
+            if(tempComp != 0){
                 if(vertical){
-                    comp->setVRatio((float)comp->getRecommendedHeight()/(float)recommendedHeight);
-                    comp->setHRatio((float)comp->getRecommendedWidth()/(float)recommendedWidth);
-                    int heightToRemove = getSpaceToRemove(comp->getVRatio());
-                    comp->setCompSize(this->removeFromTop(heightToRemove).reduced(3));
+                    tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
+                    tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
+                    int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
+                    tempComp->setCompSize(this->removeFromTop(heightToRemove).reduced(3));
                 }
                 else{                    
-                    comp->setVRatio((float)comp->getRecommendedHeight()/(float)recommendedHeight);
-                    comp->setHRatio((float)comp->getRecommendedWidth()/(float)recommendedWidth);
-                    int widthToRemove = getSpaceToRemove(comp->getHRatio());
-                    comp->setCompSize(this->removeFromLeft(widthToRemove).reduced(3));
+                    tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
+                    tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
+                    int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
+                    tempComp->setCompSize(this->removeFromLeft(widthToRemove).reduced(3));
                 }
             }
             else{
-                faustBox* box = dynamic_cast<faustBox*>(getChildComponent(i));
+                tempBox = dynamic_cast<faustBox*>(getChildComponent(i));
                 if(vertical){
-                    int heightToRemove = getSpaceToRemove(box->vRatio);
-                    if(!(name.startsWith("0x")) && !(name.isEmpty())){ box->setBoxSize(this->removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ box->setBoxSize(this->removeFromTop(heightToRemove).reduced(3)); }
+                    int heightToRemove = getSpaceToRemove(tempBox->vRatio);
+                    if(!(name.startsWith("0x")) && !(name.isEmpty())){ tempBox->setBoxSize(this->removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
+                    else{ tempBox->setBoxSize(this->removeFromTop(heightToRemove).reduced(3)); }
                 }
                 else{
-                    int widthToRemove = getSpaceToRemove(box->hRatio);
-                    if(!(name.startsWith("0x")) && !(name.isEmpty())){ box->setBoxSize(this->removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ box->setBoxSize(this->removeFromLeft(widthToRemove).reduced(3)); }
+                    int widthToRemove = getSpaceToRemove(tempBox->hRatio);
+                    if(!(name.startsWith("0x")) && !(name.isEmpty())){ tempBox->setBoxSize(this->removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
+                    else{ tempBox->setBoxSize(this->removeFromLeft(widthToRemove).reduced(3)); }
                 }
+                tempBox = nullptr;
             }
         }
     }
@@ -140,7 +146,9 @@ public:
         setHRatio();
         setVRatio();
         for(int i = 0; i<getNumChildComponents(); i++){
-            if(dynamic_cast<faustBox*>(getChildComponent(i))!=nullptr){ dynamic_cast<faustBox*>(getChildComponent(i))->setRatio(); }
+            tempBox = dynamic_cast<faustBox*>(getChildComponent(i));
+            if(tempBox != nullptr){ tempBox->setRatio(); }
+            tempBox = nullptr;
         }
     }
     
@@ -159,9 +167,16 @@ public:
         else if (order == 3){ col = Colours::darkgrey; }
         g.setColour(col);
         g.fillRect(originalBounds);
-        
+      
         g.setColour(Colours::black);
         if(!name.startsWith("0x")){ g.drawText(name, originalBounds .withHeight(10), Justification::centred); }
+    }
+
+    ~faustBox() {
+        if(tempBox != nullptr)
+            delete tempBox;
+        if(tempParentBox != nullptr)
+            delete tempParentBox;
     }
 
     float hRatio, vRatio;
@@ -171,6 +186,9 @@ public:
     String name;
     bool vertical;
     bool tabLayout;
+    faustBox* tempBox;
+    faustBox* tempParentBox;
+    uiComponent* tempComp;
 };
 
 #endif
