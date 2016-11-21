@@ -63,7 +63,6 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
 {
     Faust_layout()
     {
-        boxNumber = 0;
         order = 0;
         radioGroup = 0;
     }
@@ -82,7 +81,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     }
     
     virtual void openVerticalBox(const char* label){
-        if(boxNumber == 0) {
+        if(order == 0) {
             if(tabLayout){ tabName = String(label); label = nullptr; }
             currentBox = new faustBox(true, String(label), order, tabLayout);
             parentBox = nullptr;
@@ -95,11 +94,10 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
         }
         
         order++;
-        boxNumber++;
     }
     
     virtual void openHorizontalBox(const char* label){
-        if(boxNumber == 0) {
+        if(order == 0) {
             if(tabLayout){ tabName = String(label); label = nullptr; }
             currentBox = new faustBox(false, String(label), order, tabLayout);
             parentBox = nullptr;
@@ -112,7 +110,6 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
         }
         
         order++;
-        boxNumber++;
     }
 
 
@@ -123,12 +120,11 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             currentBox = parentBox;
             parentBox = currentBox->findParentComponentOfClass<faustBox>(); // Return comp parent of type 'faustBox'
         }
-        if(tabLayout && order == 0/*dynamic_cast<faustBox*>(currentBox->getParentComponent()) != 0*/){
+        if(tabLayout && order == 0){
             std::cout<<"Adding Box "<<currentBox->name<<" to tab "<<tabName<<std::endl;
             tabs.addTabs(tabName, currentBox);
             tabName.clear();
             addAndMakeVisible(tabs);
-            boxNumber = 0;
         }
     }
 
@@ -352,20 +348,16 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     
     void resized(){
         if(tabLayout){ tabs.setBounds(getLocalBounds()); }
-        else{
-            dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds());
-            //dynamic_cast<faustBox*> (getChildComponent(0))->layoutComponents();
-        }
+        else{ dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds()); }
     }
     
     ~Faust_layout(){
-        delete currentBox;
-        delete parentBox;
+        //delete currentBox;
+        //delete parentBox;
     }
     
     int order;
     int radioGroup;
-    int boxNumber; //Need ?
     faustBox* currentBox;
     faustBox* parentBox;
     bool tabLayout = false;

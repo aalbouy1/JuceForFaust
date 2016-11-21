@@ -113,7 +113,6 @@ public:
     }
 
     Rectangle<int> getMinSize(){
-        //return recommendedSize;
         return Rectangle<int>(0, 0, jmin(recommendedSize.getWidth(), screenWidth), jmin(recommendedSize.getHeight(), screenHeight));
     }
 

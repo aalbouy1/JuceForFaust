@@ -85,12 +85,12 @@ public:
                 tempBox = dynamic_cast<faustBox*>(getChildComponent(i));
                 if(vertical){
                     int heightToRemove = getSpaceToRemove(tempBox->vRatio);
-                    if(!(name.startsWith("0x")) && !(name.isEmpty())){ tempBox->setBoxSize(this->removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
+                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempBox->setBoxSize(this->removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
                     else{ tempBox->setBoxSize(this->removeFromTop(heightToRemove).reduced(3)); }
                 }
                 else{
                     int widthToRemove = getSpaceToRemove(tempBox->hRatio);
-                    if(!(name.startsWith("0x")) && !(name.isEmpty())){ tempBox->setBoxSize(this->removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
+                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempBox->setBoxSize(this->removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
                     else{ tempBox->setBoxSize(this->removeFromLeft(widthToRemove).reduced(3)); }
                 }
                 tempBox = nullptr;
@@ -98,6 +98,7 @@ public:
         }
     }
     
+    // Debug Output
     void writeBox(){
         std::cout<<name<<" : "<<this<<std::endl;
         std::cout<<"order : "<<order<<", itemCount : "<<getNumChildComponents()<<", parentIndex : "<<getParentComponent()<<std::endl;
@@ -153,7 +154,7 @@ public:
     }
     
     void resized() override{
-        if(order == 0){ setBoxSize(getLocalBounds()); }
+        setBoxSize(getLocalBounds());
         layoutComponents();
         writeBox();
     }
