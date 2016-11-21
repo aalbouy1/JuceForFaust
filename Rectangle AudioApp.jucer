@@ -5,6 +5,14 @@
               jucerVersion="4.3.0">
   <MAINGROUP id="QPZtN1" name="Rectangle AudioApp">
     <GROUP id="{9BA54E73-8A9C-DD5D-C876-2C85CD9C7B4F}" name="Source">
+      <FILE id="Bu1WdA" name="advanced_leak_detector.h" compile="0" resource="0"
+            file="Source/advanced_leak_detector.h"/>
+      <FILE id="TtdrEE" name="faust_box.h" compile="0" resource="0" file="Source/faust_box.h"/>
+      <FILE id="TFDGiB" name="faust_layout.h" compile="0" resource="0" file="Source/faust_layout.h"/>
+      <FILE id="CRkjKK" name="faust_tabs.h" compile="0" resource="0" file="Source/faust_tabs.h"/>
+      <FILE id="XpPQjo" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="IFCXRB" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="w8SJeS" name="UI_Component.h" compile="0" resource="0" file="Source/UI_Component.h"/>
       <GROUP id="{8663FF28-FAF1-2C71-3729-976510745DB1}" name="DSP Files">
         <FILE id="lswOs5" name="cubic_distortion-Horiz.h" compile="0" resource="0"
               file="Source/DSP Files/cubic_distortion-Horiz.h"/>
@@ -21,18 +29,12 @@
         <FILE id="RobMd3" name="kisana - copie.h" compile="0" resource="0"
               file="Source/DSP Files/kisana - copie.h"/>
         <FILE id="XdFnJ2" name="kisana.h" compile="0" resource="0" file="Source/DSP Files/kisana.h"/>
-        <FILE id="fFg01y" name="matrix.h" compile="0" resource="0" file="Source/DSP Files/matrix.h"/>
         <FILE id="IXaaRh" name="noise.h" compile="0" resource="0" file="Source/DSP Files/noise.h"/>
         <FILE id="uSCzWs" name="poly-dsp.h" compile="0" resource="0" file="Source/DSP Files/poly-dsp.h"/>
         <FILE id="ZmOqNi" name="tester2.h" compile="0" resource="0" file="Source/DSP Files/tester2.h"/>
+        <FILE id="fFg01y" name="matrix.h" compile="0" resource="0" file="Source/DSP Files/matrix.h"/>
         <FILE id="sWAHKD" name="UITester.h" compile="0" resource="0" file="Source/DSP Files/UITester.h"/>
       </GROUP>
-      <FILE id="BZxKq4" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
-      <FILE id="CPyMHp" name="UI_Component.h" compile="0" resource="0" file="Source/UI_Component.h"/>
-      <FILE id="QLvmOF" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="eZ4tWI" name="faust_box.h" compile="0" resource="0" file="Source/faust_box.h"/>
-      <FILE id="RQNz52" name="faust_tabs.h" compile="0" resource="0" file="../Rectangle AudioApp - Onglet/Source/faust_tabs.h"/>
-      <FILE id="VCT380" name="faust_layout.h" compile="0" resource="0" file="Source/faust_layout.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

@@ -46,8 +46,8 @@
 #define kHBargraphWidth 350
 #define kHBargraphHeight 50
 
-#define kLedWidth 25
-#define kLedHeight 25
+#define kLedWidth 50
+#define kLedHeight 50
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
@@ -352,7 +352,10 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     
     void resized(){
         if(tabLayout){ tabs.setBounds(getLocalBounds()); }
-        else{ dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds()); }
+        else{
+            dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds());
+            //dynamic_cast<faustBox*> (getChildComponent(0))->layoutComponents();
+        }
     }
     
     ~Faust_layout(){

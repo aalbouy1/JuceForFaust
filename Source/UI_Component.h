@@ -498,7 +498,7 @@ public:
             fScaleMin = dB2Scale(min);
             fScaleMax = dB2Scale(max);
         }
-        
+        (!(name.startsWith("0x")) && name.isNotEmpty()) ? isBargraphNameShown = true : isBargraphNameShown = false;
         if(tooltipText.isNotEmpty()){ setTooltip(tooltipText); }
         if(fStyle != Led){ setupTextEditor(); }
     }
@@ -518,18 +518,10 @@ public:
     
     void paint (Graphics& g) override
     {
-        if(fStyle == Led){ drawLed (g, kLedWidth, kLedHeight, level); }
+        if     (fStyle == Led)       { drawLed (g, kLedWidth/2, kLedHeight/2, level); }
         else if(fStyle == NumDisplay){ drawNumDisplay(g, kNumDisplayWidth, kNumDisplayHeight, level); }
-        else{
-            if(db){
-                if(fStyle == VVUMeter){ drawVBargraphDB (g, kVBargraphWidth/2 , getHeight(), level); }
-                else{                   drawHBargraphDB (g, getWidth(), kHBargraphHeight/2, level);    }
-            }
-            else{
-                if(fStyle == VVUMeter){ drawVBargraphLin (g, kVBargraphWidth/2 , getHeight(), level); }
-                else{ drawHBargraphLin (g, getWidth(), kHBargraphHeight/2, level); }
-            }
-        }
+        else if(fStyle == VVUMeter)  { drawVBargraph(g, kVBargraphWidth/2 , getHeight(), level, db); }
+        else                         { drawHBargraph (g, getWidth(), kHBargraphHeight/2, level, db); }
     }
     
     void resized() override{
@@ -551,11 +543,13 @@ private:
     String unit;
     Label label;
     String name;
+    bool isBargraphNameShown;
     
     void setTextEditorPos(){
-        if(fStyle == VVUMeter)        { label.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
+        if     (fStyle == VVUMeter)   { label.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
+        else if(fStyle == HVUMeter)   { isBargraphNameShown ? label.setBounds(63, (getHeight()-20)/2, 50, 20) : label.setBounds(3, (getHeight()-20)/2, 50, 20); }
         else if(fStyle == NumDisplay) { label.setBounds(getLocalBounds().getX(), (getLocalBounds().getHeight()-kNumDisplayHeight/2+11)/2, jmax(1,jmin(kNumDisplayWidth, getWidth())), kNumDisplayHeight/2); }
-        //else                          { label.setBounds((getWidth()-75)/2, getHeight()-22, 75, 20); } // todo
+        // LED Label ?
     }
     
     void setupTextEditor(){
@@ -568,14 +562,38 @@ private:
         addAndMakeVisible(label);
     }
     
-    void drawHBargraphDB(Graphics& g, int width, int height, float level){
-        float x = (float)(getWidth()-width)/2;
+    void drawHBargraph(Graphics& g, int width, int height, float level, bool dB){
+        float x;
         float y = (float)(getHeight()-height)/2;
+        if(isBargraphNameShown){
+            x = 120;
+            width -= x;
+            
+            // VUMeter Name
+            g.setColour(Colours::black);
+            g.drawText(name, 0, y, 60, height, Justification::centredRight);
+        }
+        else{
+            x = 60;
+            width -= x;
+        }
         
+        // VUMeter Background
         g.setColour(Colours::lightgrey);
         g.fillRect(x, y, (float) width, (float) height);
         g.setColour(Colours::black);
         g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
+        
+        // Label Window
+        g.setColour(Colours::darkgrey);
+        g.fillRect((int)x-58, (getHeight()-22)/2, 52, 22);
+        g.setColour(Colours::white.withAlpha(0.8f));
+        g.fillRect((int)x-57, (getHeight()-20)/2, 50, 20);
+        
+        dB ? drawHBargraphDB(g, y, height, level) : drawHBargraphLin(g, x, y, width, height, level);
+    }
+    
+    void drawHBargraphDB(Graphics& g, int y, int height, float level){
         
         // Drawing Scale
         g.setFont(9.0f);
@@ -586,7 +604,7 @@ private:
         int alpha = 200;
         
         g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-        g.fillRect(dB2x(min), y+1.0f, jmin(dB2x(level), dB2x(-10)), (float) height-2);
+        g.fillRect(dB2x(min), y+1.0f, jmin(dB2x(level)-dB2x(min), dB2x(-10)-dB2x(min)), (float) height-2);
         
         if(dB2Scale(level) > dB2Scale(-10)){
             g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
@@ -606,14 +624,7 @@ private:
         }
     }
     
-    void drawHBargraphLin(Graphics& g, int width, int height, float level){
-        float x = (float)(getWidth()-width)/2;
-        float y = (float)(getHeight()-height)/2;
-        
-        g.setColour(Colours::lightgrey);
-        g.fillRect(x, y, (float) width, (float) height);
-        g.setColour(Colours::black);
-        g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
+    void drawHBargraphLin(Graphics& g, int x, int y, int width, int height, float level){
         
         int alpha = 200;
         Colour c = juce::Colour((uint8)255, (uint8)165, (uint8)0, (uint8)alpha);
@@ -631,15 +642,18 @@ private:
         }
     }
     
-    void drawVBargraphDB(Graphics& g, int width, int height, float level){
+    void drawVBargraph(Graphics& g, int width, int height, float level, bool dB){
         float x = (float)(getLocalBounds().getWidth()-width)/2;
-        float y = (float) getLocalBounds().getHeight()-height+25;
-        height -= 50;
-        
-        // VUMeter Name
-        g.setColour(Colours::black);
-        if(!(name.startsWith("0x")) && name.isNotEmpty())
+        float y;
+        if(isBargraphNameShown) {
+            y = (float) getLocalBounds().getHeight()-height+25;
+            height -= 50;
+            
+            // VUMeter Name
+            g.setColour(Colours::black);
             g.drawText(name, getLocalBounds().translated(0, 10), Justification::centredTop);
+        }
+        else{ y = (float) getLocalBounds().getHeight()-height+15; height -= 40; }
         
         // VUMeter Background
         g.setColour(Colours::lightgrey);
@@ -652,6 +666,11 @@ private:
         g.fillRect((getWidth()-50)/2-1, getHeight()-23, 52, 22);
         g.setColour(Colours::white.withAlpha(0.8f));
         g.fillRect((getWidth()-50)/2, getHeight()-22, 50, 20);
+        
+        dB ? drawVBargraphDB(g, x, width, level) : drawVBargraphLin(g, x, width, level);
+    }
+    
+    void drawVBargraphDB(Graphics& g, int x, int width, float level){
         
         // Drawing Scale
         g.setFont(9.0f);
@@ -682,28 +701,7 @@ private:
         }
     }
     
-    void drawVBargraphLin(Graphics& g, int width, int height, float level){
-        float x = (float)(getLocalBounds().getWidth()-width)/2;
-        float y = (float) getLocalBounds().getHeight()-height+25;
-        height -= 50;
-        
-        // VUMeter Name
-        g.setColour(Colours::black);
-        if(!(name.startsWith("0x")) && name.isNotEmpty())
-            g.drawText(name, getLocalBounds().translated(0, 10), Justification::centredTop);
-        
-        // VUMeter Background
-        g.setColour(Colours::lightgrey);
-        g.fillRect(x, y, (float) width, (float) height);
-        g.setColour(Colours::black);
-        g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
-        
-        // Label window
-        g.setColour(Colours::darkgrey);
-        g.fillRect((getWidth()-50)/2-1, getHeight()-23, 52, 22);
-        g.setColour(Colours::white.withAlpha(0.8f));
-        g.fillRect((getWidth()-50)/2, getHeight()-22, 50, 20);
-        
+    void drawVBargraphLin(Graphics& g, int x, int width, float level){
         int alpha = 200;
         Colour c = juce::Colour((uint8)255, (uint8)165, (uint8)0, (uint8)alpha);
         
@@ -722,10 +720,10 @@ private:
     }
     
     void drawLed(Graphics& g, int width, int height, float level){
-        float x = (float) getLocalBounds().getX();
-        float y = (float) getLocalBounds().getY();
+        float x = (float) (getLocalBounds().getWidth() - width)/2;
+        float y = (float) (getLocalBounds().getHeight() - height)/2;
         g.setColour(Colours::black);
-        g.fillEllipse(x, y, kLedWidth, kLedHeight);
+        g.fillEllipse(x, y, width, height);
         if(db){
             int alpha = 200;
             g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
@@ -734,17 +732,18 @@ private:
             if(dB2Scale(level) > dB2Scale(-3)) { g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha)); }
             if(dB2Scale(level) > dB2Scale(0))  { g.setColour(Colour((uint8)240, (uint8)0,   (uint8)20, (uint8)alpha)); }
             
-            g.fillEllipse(x+1, y+1, kLedWidth-2, kLedHeight-2);
+            g.fillEllipse(x+1, y+1, width-2, height-2);
         }
         else{
             g.setColour(Colours::red.withAlpha((float)level));
-            g.fillEllipse(x+1, y+1, kLedWidth-2, kLedHeight-2);
+            g.fillEllipse(x+1, y+1, width-2, height-2);
         }
     }
     
     void drawNumDisplay(Graphics& g, int width, int height, float level){
         int x = getLocalBounds().getX();
         int y = (getLocalBounds().getHeight()-kNumDisplayHeight/2+11)/2;
+        
         //Draw box
         g.setColour(Colours::darkgrey);
         g.fillRect(x, y, jmax(1,jmin(kNumDisplayWidth, getWidth())), kNumDisplayHeight/2);
@@ -777,13 +776,19 @@ private:
         FAUSTFLOAT s0 = fScaleMin;
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
-        int    h = getHeight()-52;
-        return (h - h*(s0-sx)/(s0-s1))+26;
+        int h;
+        int treshold;
+        if(isBargraphNameShown){ h = getHeight()-52; treshold = 26; }
+        else{ h = getHeight()-42; treshold = 16; }
+        return (h - h*(s0-sx)/(s0-s1)) + treshold;
     }
     
     float lin2y(float level){
-        int h = getHeight() - 52;
-        return h * (1 - level) + 26.0f;
+        int h;
+        int treshold;
+        if(isBargraphNameShown){ h = getHeight() - 52; treshold = 26; }
+        else{ h = getHeight()-42; treshold = 16; }
+        return h * (1 - level) + treshold;
     }
     
     float dB2x(float dB)
@@ -791,8 +796,11 @@ private:
         FAUSTFLOAT s0 = fScaleMin;
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
-        int    w = getWidth()-2;
-        return w - w*(s1-sx)/(s1-s0)+1;
+        int w;
+        int treshold;
+        if(isBargraphNameShown){ w = getWidth()-122; treshold = 120; }
+        else{ w = getWidth()-62; treshold = 60; }
+        return treshold + w - w*(s1-sx)/(s1-s0)+1;
     }
     
     void paintScale(Graphics& g, int num){
@@ -801,7 +809,7 @@ private:
             g.drawText(String(num), r, Justification::centredRight, false);
         }
         else{
-            Rectangle<int> r = Rectangle<int>(dB2x(num)-10,(getHeight()-kHBargraphHeight)/2 +1, 20, kHBargraphHeight-2);
+            Rectangle<int> r = Rectangle<int>(dB2x(num)-10,(getHeight()-kHBargraphHeight/2)/2 +1, 20, (kHBargraphHeight/2)-2);
             g.drawText(String(num), r, Justification::centredTop, false);
         }
     }

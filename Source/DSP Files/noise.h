@@ -130,10 +130,10 @@ class mydsp : public dsp {
 		ui_interface->openVerticalBox("0x00");
         ui_interface->declare(&fVslider0, "style", "knob");
         ui_interface->addVerticalSlider("Volume", &fVslider0, 0.200000003f, 0.0f, 1.0f, 0.001f);
-        ui_interface->addHorizontalBargraph("Volume", &fVslider0, 0.0f, 1.0f);
+        ui_interface->addHorizontalBargraph("0x", &fVslider0, 0.0f, 1.0f);
 		ui_interface->closeBox();
         ui_interface->openVerticalBox("0x22");
-        ui_interface->addVerticalBargraph("Volume", &fVslider0, 0.0f, 1.0f);
+        ui_interface->addVerticalBargraph("0x", &fVslider0, 0.0f, 1.0f);
         ui_interface->closeBox();
         ui_interface->closeBox();
 		
