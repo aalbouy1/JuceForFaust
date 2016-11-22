@@ -129,13 +129,12 @@ public:
         */
 
     private:
-        myViewport* viewport;
+        ScopedPointer<myViewport> viewport;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
     
 private:
     ScopedPointer<MainWindow> mainWindow;
-    ScopedPointer<myViewport> viewport;
 };
 
 //==============================================================================

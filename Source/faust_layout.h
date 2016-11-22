@@ -26,7 +26,7 @@
 #define kButtonHeight 50
 
 #define kCheckButtonWidth 100
-#define kCheckButtonHeight 30
+#define kCheckButtonHeight 40
 
 #define kMenuWidth 100
 #define kMenuHeight 50
@@ -83,8 +83,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     virtual void openVerticalBox(const char* label){
         if(order == 0) {
             if(tabLayout){ tabName = String(label); label = nullptr; }
-            currentBox = new faustBox(true, String(label), order, tabLayout);
-            parentBox = nullptr;
+            currentBox = new faustBox(true,    String(label), order, tabLayout);
             if(!tabLayout){ addAndMakeVisible(currentBox); }
         }
         else{
@@ -115,13 +114,14 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
 
     virtual void closeBox(){
         order--;
-        currentBox->calculRecommendedSize();
+        if(currentBox != nullptr)
+            currentBox->calculRecommendedSize();
         if(dynamic_cast<faustBox*>(currentBox->getParentComponent()) != 0){
             currentBox = parentBox;
             parentBox = currentBox->findParentComponentOfClass<faustBox>(); // Return comp parent of type 'faustBox'
         }
         if(tabLayout && order == 0){
-            std::cout<<"Adding Box "<<currentBox->name<<" to tab "<<tabName<<std::endl;
+            //std::cout<<"Adding Box "<<currentBox->name<<" to tab "<<tabName<<std::endl;
             tabs.addTabs(tabName, currentBox);
             tabName.clear();
             addAndMakeVisible(tabs);
@@ -352,8 +352,8 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     }
     
     ~Faust_layout(){
-        //delete currentBox;
-        //delete parentBox;
+        delete currentBox;
+        delete parentBox;
     }
     
     int order;

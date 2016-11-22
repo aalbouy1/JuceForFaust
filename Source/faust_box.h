@@ -28,7 +28,7 @@ public:
         if(tempBox != nullptr){
             hRatio = (float)recommendedWidth/(float)tempBox->recommendedWidth;
         }
-        tempBox = nullptr;
+        tempBox.release();
     }
     
     void setVRatio(){
@@ -36,7 +36,7 @@ public:
         if(tempBox != nullptr){
             vRatio = (float)recommendedHeight/(float)tempBox->recommendedHeight;
         }
-        tempBox = nullptr;
+        tempBox.release();
     }
     
     void setBoxSize(Rectangle<int> r){
@@ -51,15 +51,15 @@ public:
         }
         else{
             if(tabLayout){
-                setPosition(r.getX(), r.getY()+30);
-                setTopLeftPosition(r.getX(), r.getY()+30);
+                setPosition(r.getX()+1, r.getY()+30);
+                setTopLeftPosition(r.getX()+1, r.getY()+30);
             }
             else{
                 setPosition(r.getX(), r.getY());
                 setTopLeftPosition(r.getX(), r.getY());
             }
         }
-        tempParentBox = nullptr;
+        tempParentBox.release();
         originalBounds = getLocalBounds();
     }
     
@@ -72,20 +72,22 @@ public:
                     tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
                     tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
                     int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                    tempComp->setCompSize(this->removeFromTop(heightToRemove).reduced(3));
+                    if(!(name.startsWith("0x")) && name.isNotEmpty() && i == 0){ tempComp->setCompSize(this->removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
+                    else{ tempComp->setCompSize(this->removeFromTop(heightToRemove).reduced(3)); }
                 }
                 else{                    
                     tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
                     tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
                     int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                    tempComp->setCompSize(this->removeFromLeft(widthToRemove).reduced(3));
+                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempComp->setCompSize(this->removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
+                    else{ tempComp->setCompSize(this->removeFromLeft(widthToRemove).reduced(3)); }
                 }
             }
             else{
                 tempBox = dynamic_cast<faustBox*>(getChildComponent(i));
                 if(vertical){
                     int heightToRemove = getSpaceToRemove(tempBox->vRatio);
-                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempBox->setBoxSize(this->removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
+                    if(!(name.startsWith("0x")) && name.isNotEmpty() && i == 0){ tempBox->setBoxSize(this->removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
                     else{ tempBox->setBoxSize(this->removeFromTop(heightToRemove).reduced(3)); }
                 }
                 else{
@@ -93,7 +95,7 @@ public:
                     if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempBox->setBoxSize(this->removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
                     else{ tempBox->setBoxSize(this->removeFromLeft(widthToRemove).reduced(3)); }
                 }
-                tempBox = nullptr;
+                tempBox.release();
             }
         }
     }
@@ -149,7 +151,7 @@ public:
         for(int i = 0; i<getNumChildComponents(); i++){
             tempBox = dynamic_cast<faustBox*>(getChildComponent(i));
             if(tempBox != nullptr){ tempBox->setRatio(); }
-            tempBox = nullptr;
+            tempBox.release();
         }
     }
     
@@ -173,13 +175,6 @@ public:
         if(!name.startsWith("0x")){ g.drawText(name, originalBounds .withHeight(10), Justification::centred); }
     }
 
-    ~faustBox() {
-        if(tempBox != nullptr)
-            delete tempBox;
-        if(tempParentBox != nullptr)
-            delete tempParentBox;
-    }
-
     float hRatio, vRatio;
     int recommendedWidth, recommendedHeight;
     Rectangle<int> originalBounds;
@@ -187,8 +182,8 @@ public:
     String name;
     bool vertical;
     bool tabLayout;
-    faustBox* tempBox;
-    faustBox* tempParentBox;
+    ScopedPointer<faustBox> tempBox;
+    ScopedPointer<faustBox> tempParentBox;
     uiComponent* tempComp;
 };
 

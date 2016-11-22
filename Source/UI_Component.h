@@ -146,8 +146,8 @@ public:
     
     virtual void paint(Graphics& g) override{
         g.setColour (Colours::black);
-        if(type == VSlider) { g.drawText(sliderName, getParentComponent()->getLocalBounds().withTrimmedTop(9), Justification::centredTop); }
-        else if(type == Knob) { g.drawText(sliderName, getParentComponent()->getLocalBounds(), Justification::centredTop); }
+        if(type == VSlider || type == Knob) { g.drawText(sliderName, getLocalBounds(), Justification::centredTop); }
+        //else if(type == Knob) { g.drawText(sliderName, getLocalBounds(), Justification::centredTop); }
     }
 
     void reflectZone() override
@@ -171,11 +171,11 @@ public:
             width = getLocalBounds().reduced(3).getWidth()-60; height = getLocalBounds().reduced(3).getHeight();
         }
         else if(type == NumEntry){
-            width = kNumEntryWidth-6; height = kNumEntryHeight-6;
+            width = kNumEntryWidth-10; height = kNumEntryHeight-15;
             x = (getLocalBounds().reduced(3).getWidth()-width)/2; y = (getLocalBounds().reduced(3).getHeight()-height)/2;
         }
         else{
-            x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+15;
+            x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+11;
             height = getLocalBounds().reduced(3).getHeight()-25; width = getLocalBounds().reduced(3).getWidth();
         }
         slider.setBounds(x, y, width, height);
@@ -197,7 +197,7 @@ public:
         x = getLocalBounds().getX()+10;
         width = kCheckButtonWidth;
         height = kCheckButtonHeight;
-        y = roundToInt((getLocalBounds().getHeight()-height)/2);
+        y = (getLocalBounds().getHeight()-height)/2;
         
         button.setButtonText(label);
         button.setBounds(x, y, width, height);
@@ -232,7 +232,7 @@ public:
         x = getLocalBounds().getX()+10;
         height = getLocalBounds().reduced(3).getHeight();
         width = getLocalBounds().getWidth()-20;
-        y = roundToInt((getLocalBounds().getHeight()-height)/2);
+        y = (getLocalBounds().getHeight()-height)/2;
         button.setBounds(x, y, width, height);
     }
 };
@@ -249,8 +249,8 @@ private:
 public:
     uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
     {
-        x = roundToInt(getLocalBounds().getX() + 10);
-        y = roundToInt((getLocalBounds().getHeight()-kCheckButtonHeight)/2);
+        x = getLocalBounds().getX() + 10;
+        y = (getLocalBounds().getHeight()-height)/2;
         
         if(tooltipText.isNotEmpty()){ setTooltip(tooltipText); }
         
@@ -264,10 +264,6 @@ public:
     
     void buttonClicked(Button* button)
     {
-    }
-    
-    void buttonStateChanged (Button* button) override
-    {
         std::cout<<name<<" : "<<button->getToggleState()<<std::endl;
         modifyZone(button->getToggleState());
     }
@@ -278,8 +274,6 @@ public:
         fCache = v;
     }
     
-    
-    
     virtual void paint(Graphics& g) override
     {
     }
@@ -287,9 +281,9 @@ public:
     virtual void resized() override
     {
         std::cout<<"RESIZING CHECKBUTTON"<<std::endl;
-        x = roundToInt(getLocalBounds().getX()+10);
-        y = roundToInt((getLocalBounds().getHeight()-kCheckButtonHeight)/2);
-        checkButton.setBounds(x, y, width, kCheckButtonHeight);
+        x = getLocalBounds().getX();
+        y = getLocalBounds().getY();
+        checkButton.setBounds(x, y, jmin(getLocalBounds().getWidth(), width), jmin(getLocalBounds().getHeight(), height));
     }
 };
 
@@ -311,11 +305,7 @@ public:
         fComboBox.setJustificationType(Justification::centred);
         fComboBox.addListener(this);
         addAndMakeVisible(fComboBox);
-        /*
-        auto fLabel = new Label (name, name);
-        fLabel->attachToComponent(&fComboBox, false);
-        addAndMakeVisible(fLabel);
-        */
+        
         vector<string>  names;
         vector<double>  values;
         
@@ -373,7 +363,7 @@ public:
     }
     
     virtual void resized(){
-        fComboBox.setBounds(1, getLocalBounds().getHeight()*0.75 - height/4, getWidth()-2, height/2);
+        fComboBox.setBounds(1, getLocalBounds().getY() + 15, getWidth()-2, height/2);
     }
     
     virtual void paint(Graphics& g){
@@ -397,8 +387,8 @@ private:
 public:
     uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, const char* mdescr, int radioGroupID) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h), vertical(vert)
     {
-        x = roundToInt(getLocalBounds().getX() + 10);
-        y = roundToInt((getLocalBounds().getHeight()-kCheckButtonHeight)/2);
+        x = getLocalBounds().getX() + 10;
+        y = (getLocalBounds().getHeight()-kCheckButtonHeight)/2;
         
         {
             ToggleButton*   defaultbutton = 0;
@@ -519,7 +509,7 @@ public:
     void paint (Graphics& g) override
     {
         if     (fStyle == Led)       { drawLed (g, kLedWidth/2, kLedHeight/2, level); }
-        else if(fStyle == NumDisplay){ drawNumDisplay(g, kNumDisplayWidth, kNumDisplayHeight, level); }
+        else if(fStyle == NumDisplay){ drawNumDisplay(g, kNumDisplayWidth, kNumDisplayHeight/2, level); }
         else if(fStyle == VVUMeter)  { drawVBargraph(g, kVBargraphWidth/2 , getHeight(), level, db); }
         else                         { drawHBargraph (g, getWidth(), kHBargraphHeight/2, level, db); }
     }
@@ -548,7 +538,7 @@ private:
     void setTextEditorPos(){
         if     (fStyle == VVUMeter)   { label.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
         else if(fStyle == HVUMeter)   { isBargraphNameShown ? label.setBounds(63, (getHeight()-20)/2, 50, 20) : label.setBounds(3, (getHeight()-20)/2, 50, 20); }
-        else if(fStyle == NumDisplay) { label.setBounds(getLocalBounds().getX(), (getLocalBounds().getHeight()-kNumDisplayHeight/2+11)/2, jmax(1,jmin(kNumDisplayWidth, getWidth())), kNumDisplayHeight/2); }
+        else if(fStyle == NumDisplay) { label.setBounds(getLocalBounds().getX(), getLocalBounds().getY(), jmax(1,jmin(kNumDisplayWidth, getWidth()))-2, jmax(1,jmin(kNumDisplayHeight/2, getHeight()))-2); }
         // LED Label ?
     }
     
@@ -646,14 +636,14 @@ private:
         float x = (float)(getLocalBounds().getWidth()-width)/2;
         float y;
         if(isBargraphNameShown) {
-            y = (float) getLocalBounds().getHeight()-height+25;
-            height -= 50;
+            y = (float) getLocalBounds().getHeight()-height+15;
+            height -= 40;
             
             // VUMeter Name
             g.setColour(Colours::black);
-            g.drawText(name, getLocalBounds().translated(0, 10), Justification::centredTop);
+            g.drawText(name, getLocalBounds(), Justification::centredTop);
         }
-        else{ y = (float) getLocalBounds().getHeight()-height+15; height -= 40; }
+        else{ y = (float) getLocalBounds().getHeight()-height; height -= 25; }
         
         // VUMeter Background
         g.setColour(Colours::lightgrey);
@@ -663,9 +653,9 @@ private:
         
         // Label window
         g.setColour(Colours::darkgrey);
-        g.fillRect((getWidth()-50)/2-1, getHeight()-23, 52, 22);
+        g.fillRect(jmax((getWidth()-50)/2, 0), getHeight()-23, jmin(getWidth(), 50), 22);
         g.setColour(Colours::white.withAlpha(0.8f));
-        g.fillRect((getWidth()-50)/2, getHeight()-22, 50, 20);
+        g.fillRect(jmax((getWidth()-48)/2, 1), getHeight()-22, jmin(getWidth()-2, 48), 20);
         
         dB ? drawVBargraphDB(g, x, width, level) : drawVBargraphLin(g, x, width, level);
     }
@@ -720,6 +710,8 @@ private:
     }
     
     void drawLed(Graphics& g, int width, int height, float level){
+        width  -= 2;
+        height -= 2;
         float x = (float) (getLocalBounds().getWidth() - width)/2;
         float y = (float) (getLocalBounds().getHeight() - height)/2;
         g.setColour(Colours::black);
@@ -742,13 +734,14 @@ private:
     
     void drawNumDisplay(Graphics& g, int width, int height, float level){
         int x = getLocalBounds().getX();
-        int y = (getLocalBounds().getHeight()-kNumDisplayHeight/2+11)/2;
+        int y = getLocalBounds().getY();
+        height -= 5;
         
         //Draw box
         g.setColour(Colours::darkgrey);
-        g.fillRect(x, y, jmax(1,jmin(kNumDisplayWidth, getWidth())), kNumDisplayHeight/2);
+        g.fillRect(x, y, jmax(1,jmin(kNumDisplayWidth, getWidth())), jmax(1,jmin(height, getHeight())));
         g.setColour(Colours::white.withAlpha(0.8f));
-        g.fillRect(x+1, y+1, jmax(1,jmin(kNumDisplayWidth, getWidth()))-2, kNumDisplayHeight/2-2);
+        g.fillRect(x+1, y+1, jmax(1,jmin(kNumDisplayWidth, getWidth()))-2, jmax(1,jmin(height, getHeight()))-2);
     }
     
     float dB2Scale(float dB)
@@ -778,16 +771,16 @@ private:
         FAUSTFLOAT sx = dB2Scale(dB);
         int h;
         int treshold;
-        if(isBargraphNameShown){ h = getHeight()-52; treshold = 26; }
-        else{ h = getHeight()-42; treshold = 16; }
+        if(isBargraphNameShown){ h = getHeight()-32; treshold = 16; }
+        else{ h = getHeight()-27; treshold = 1; }
         return (h - h*(s0-sx)/(s0-s1)) + treshold;
     }
     
     float lin2y(float level){
         int h;
         int treshold;
-        if(isBargraphNameShown){ h = getHeight() - 52; treshold = 26; }
-        else{ h = getHeight()-42; treshold = 16; }
+        if(isBargraphNameShown){ h = getHeight()-32; treshold = 16; }
+        else{ h = getHeight()-27; treshold = 1; }
         return h * (1 - level) + treshold;
     }
     

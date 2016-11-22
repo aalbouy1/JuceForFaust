@@ -1838,7 +1838,7 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVbargraph2, "0", "");
 		ui_interface->declare(&fVbargraph2, "tooltip", "Spectral Band Level in dB");
 		ui_interface->declare(&fVbargraph2, "unit", "dB");
-		ui_interface->addVerticalBargraph("0x7fa9c523a890", &fVbargraph2, -50.0f, 10.0f);
+		ui_interface->addVerticalBargraph("VBargraph1", &fVbargraph2, -50.0f, 10.0f);
 		ui_interface->declare(&fVbargraph3, "1", "");
 		ui_interface->declare(&fVbargraph3, "tooltip", "Spectral Band Level in dB");
 		ui_interface->declare(&fVbargraph3, "unit", "dB");
@@ -1854,7 +1854,7 @@ class mydsp : public dsp {
 		ui_interface->declare(&fVbargraph6, "4", "");
 		ui_interface->declare(&fVbargraph6, "tooltip", "Spectral Band Level in dB");
 		ui_interface->declare(&fVbargraph6, "unit", "dB");
-		ui_interface->addVerticalBargraph("0x7fa9c5280a70", &fVbargraph6, -50.0f, 10.0f);
+		ui_interface->addVerticalBargraph("VBargraph5", &fVbargraph6, -50.0f, 10.0f);
 		ui_interface->declare(&fVbargraph7, "5", "");
 		ui_interface->declare(&fVbargraph7, "tooltip", "Spectral Band Level in dB");
 		ui_interface->declare(&fVbargraph7, "unit", "dB");
