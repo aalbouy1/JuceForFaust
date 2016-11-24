@@ -10,17 +10,18 @@
 #define MAINCOMPONENT_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "faust_layout.h"
+#include "CustomLookAndFeel.h"
 
+#include "faust_layout.h"
 
 // Select here the compiled DSP that you want to execute
 //#include "DSP files/noise.h"                  //OK
-//#include "DSP files/kisana.h"                 //OK
+#include "DSP files/kisana.h"                 //OK
 //#include "DSP files/kisana - copie.h"         //OK
 //#include "DSP Files/matrix.h"                 //OK
 //#include "DSP files/karplus.h"                //OK
 //#include "DSP Files/karplus32.h"              //OK
-#include "DSP Files/karplus_synth.h"          //OK
+//#include "DSP Files/karplus_synth.h"          //OK
 //#include "DSP Files/karplus32bis.h"           //OK
 //#include "DSP Files/UITester.h"               //OK
 //#include "DSP Files/cubic_distortion.h"       //OK
@@ -102,7 +103,7 @@ public:
 
     void paint (Graphics& g) override
     {
-        g.fillAll (Colour (Colours::lightblue));
+        g.fillAll (Colour (Colours::darkgrey));
     }
 
     void resized() override

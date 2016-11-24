@@ -163,15 +163,15 @@ public:
     }
 
     void paint(Graphics& g) override
-    {
+    {/*
         Colour col;
-        if      (order == 0){ col = Colours::white;}
-        else if (order == 1){ col = Colours::lightgrey;}
-        else if (order == 2){ col = Colours::grey; }
-        else if (order == 3){ col = Colours::darkgrey; }
+        if      (order == 3){ col = Colours::white;}
+        else if (order == 2){ col = Colours::lightgrey;}
+        else if (order == 1){ col = Colours::grey; }
+        else if (order == 0){ col = Colours::darkgrey; }
         g.setColour(col);
         g.fillRect(originalBounds);
-      
+      */
         g.setColour(Colours::black);
         if(!name.startsWith("0x")){ g.drawText(name, originalBounds .withHeight(10), Justification::centred); }
     }

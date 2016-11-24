@@ -179,7 +179,7 @@ public:
         }
         else{
             x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+11;
-            height = getLocalBounds().reduced(3).getHeight()-25; width = getLocalBounds().reduced(3).getWidth();
+            height = getLocalBounds().reduced(3).getHeight()-12; width = getLocalBounds().reduced(3).getWidth();
         }
         slider.setBounds(x, y, width, height);
     }
@@ -793,7 +793,7 @@ private:
         FAUSTFLOAT sx = dB2Scale(dB);
         int h;
         int treshold;
-        if(isBargraphNameShown){ h = getHeight()-32; treshold = 16; }
+        if(isBargraphNameShown){ h = getHeight()-42; treshold = 16; }
         else{ h = getHeight()-27; treshold = 1; }
         return (h - h*(s0-sx)/(s0-s1)) + treshold;
     }

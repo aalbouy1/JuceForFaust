@@ -24,6 +24,7 @@ public:
     void init(){
         for(int i = 0; i < getNumTabs(); i++){
             dynamic_cast<faustBox*>(getTabContentComponent(i))->setRatio();
+            dynamic_cast<faustBox*>(getTabContentComponent(i))->setLookAndFeel(laf);
             recommendedHeight = jmax(recommendedHeight, dynamic_cast<faustBox*>(getTabContentComponent(i))->recommendedHeight);
             recommendedWidth = jmax(recommendedWidth, dynamic_cast<faustBox*>(getTabContentComponent(i))->recommendedWidth);
         }
@@ -45,6 +46,7 @@ public:
     }
     
     int recommendedWidth, recommendedHeight;
+    ScopedPointer<LookAndFeel> laf = new CustomLookAndFeel();
 };
 
 #endif
