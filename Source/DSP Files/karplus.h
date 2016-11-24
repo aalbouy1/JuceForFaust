@@ -189,7 +189,7 @@ public:
     }
     
     virtual void buildUserInterface(UI* ui_interface) {
-        ui_interface->openVerticalBox("0x00");
+        ui_interface->openVerticalBox("karplus");
         ui_interface->openVerticalBox("excitator");
         ui_interface->declare(&fHslider2, "unit", "f");
         ui_interface->addHorizontalSlider("excitation", &fHslider2, 128.0f, 2.0f, 512.0f, 1.0f);

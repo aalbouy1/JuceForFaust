@@ -491,7 +491,7 @@ class mydsp : public dsp {
 		ui_interface->addHorizontalSlider("excitation (samples)", &fHslider4, 128.0f, 2.0f, 512.0f, 1.0f);
 		ui_interface->addButton("play",&fButton0);
 		ui_interface->closeBox();
-		ui_interface->openVerticalBox("noise generator");
+		ui_interface->openHorizontalBox("noise generator");
 		ui_interface->addHorizontalSlider("level", &fHslider3, 0.5f, 0.0f, 1.0f, 0.100000001f);
 		ui_interface->closeBox();
 		ui_interface->addHorizontalSlider("output volume", &fHslider0, 0.5f, 0.0f, 1.0f, 0.100000001f);

@@ -218,7 +218,6 @@ class mydsp : public dsp {
 		ui_interface->addNumEntry("gain", &fEntry1, 1.0f, 0.0f, 10.0f, 0.00999999978f);
 		ui_interface->addButton("gate",&fButton0);
 		ui_interface->closeBox();
-		
 	}
 	
 	virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {

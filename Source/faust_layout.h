@@ -84,6 +84,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
         if(order == 0) {
             if(tabLayout){ tabName = String(label); label = nullptr; }
             currentBox = new faustBox(true,    String(label), order, tabLayout);
+            parentBox = nullptr;
             if(!tabLayout){ addAndMakeVisible(currentBox); }
         }
         else{
@@ -121,7 +122,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
             parentBox = currentBox->findParentComponentOfClass<faustBox>(); // Return comp parent of type 'faustBox'
         }
         if(tabLayout && order == 0){
-            //std::cout<<"Adding Box "<<currentBox->name<<" to tab "<<tabName<<std::endl;
+            std::cout<<"Adding Box "<<currentBox->name<<" to tab "<<tabName<<std::endl;
             tabs.addTabs(tabName, currentBox);
             tabName.clear();
             addAndMakeVisible(tabs);
@@ -352,8 +353,11 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     }
     
     ~Faust_layout(){
+        std::cout<<std::endl<<"Destructing boxes"<<std::endl;
+        
         delete currentBox;
-        delete parentBox;
+        if(parentBox != nullptr)
+            delete parentBox;
     }
     
     int order;

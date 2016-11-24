@@ -263,7 +263,7 @@ class mydsp : public dsp {
 		ui_interface->addHorizontalSlider("signal", &fHslider0, 0.0f, 0.0f, 2.0f, 1.0f);
 		ui_interface->declare(&fHslider3, "4", "");
 		ui_interface->declare(&fHslider3, "style", "radio{'none':0;'left':1;'right':2;'both':3}");
-		ui_interface->addHorizontalSlider("channel", &fHslider3, 0.0f, 0.0f, 3.0f, 1.0f);
+		ui_interface->addVerticalSlider("channel", &fHslider3, 0.0f, 0.0f, 3.0f, 1.0f);
 		ui_interface->closeBox();
 		
 	}

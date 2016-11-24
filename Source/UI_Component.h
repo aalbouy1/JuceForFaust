@@ -15,8 +15,6 @@
 #include "faust/gui/MetaDataUI.h"
 #include "faust/gui/ValueConverter.h"
 
-class faustBox;
-
 enum SliderType{
     HSlider,
     VSlider,
