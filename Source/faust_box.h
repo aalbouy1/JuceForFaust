@@ -23,6 +23,16 @@ public:
         if(order == 0){ hRatio = 1; vRatio = 1; }
     }
     
+    void setChildLookAndFeel(LookAndFeel* laf){
+        for(int i = 0; i<getNumChildComponents(); i++){
+            if(dynamic_cast<uiComponent*> (getChildComponent(i)) != nullptr)
+                dynamic_cast<uiComponent*> (getChildComponent(i))->setCompLookAndFeel(laf);
+            else{
+                dynamic_cast<faustBox*>(getChildComponent(i))->setChildLookAndFeel(laf);
+            }
+        }
+    }
+    
     void setHRatio(){
         if(findParentComponentOfClass<faustBox>() != nullptr){
             hRatio = (float)recommendedWidth/(float)findParentComponentOfClass<faustBox>()->recommendedWidth;

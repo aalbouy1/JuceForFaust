@@ -65,6 +65,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     {
         order = 0;
         radioGroup = 0;
+        laf = new LookAndFeel_V1();
     }
     
     void setSize(Rectangle<int> r){
@@ -344,6 +345,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
         else{
             dynamic_cast<faustBox*> (getChildComponent(0))->setRatio();
             dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds());
+            dynamic_cast<faustBox*> (getChildComponent(0))->setChildLookAndFeel(laf);
         }
     }
     
@@ -367,6 +369,8 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
     bool tabLayout = false;
     Faust_tabs tabs;
     String tabName;
+    
+    ScopedPointer<LookAndFeel> laf;
 
     Rectangle<int> window;
 };

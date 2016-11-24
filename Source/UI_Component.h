@@ -69,6 +69,7 @@ struct uiComponent: public Component, uiItem, SettableTooltipClient
     
     virtual void paint(Graphics& g) = 0;
     virtual void resized() = 0;
+    virtual void setCompLookAndFeel(LookAndFeel* laf) = 0;
     
     uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip): uiItem(gui,zone), recomWidth(w), recomHeight(h), tooltipText(tooltip)
     {
@@ -162,6 +163,10 @@ public:
         modifyZone(value);
     }
 
+    virtual void setCompLookAndFeel(LookAndFeel* laf){
+        slider.setLookAndFeel(laf);
+    }
+
     virtual void resized() override{
         std::cout<<sliderName<<", ";
         if(type == HSlider){
@@ -221,6 +226,10 @@ public:
         fCache = v;
     }
     
+    virtual void setCompLookAndFeel(LookAndFeel* laf){
+        button.setLookAndFeel(laf);
+    }
+    
     virtual void paint(Graphics& g) override
     {
     }
@@ -270,6 +279,10 @@ public:
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
+    }
+    
+    virtual void setCompLookAndFeel(LookAndFeel* laf){
+        checkButton.setLookAndFeel(laf);
     }
     
     virtual void paint(Graphics& g) override
@@ -360,6 +373,10 @@ public:
         if (defaultitem > -1) { fComboBox.setSelectedItemIndex(defaultitem); }
     }
     
+    virtual void setCompLookAndFeel(LookAndFeel* laf){
+        fComboBox.setLookAndFeel(laf);
+    }
+    
     virtual void resized(){
         fComboBox.setBounds(1, getLocalBounds().getY() + 15, getWidth()-2, height/2);
     }
@@ -430,6 +447,11 @@ public:
     {
         if(!vertical){ hRatio = ratio * nbButtons; }
         else{ hRatio = ratio; }
+    }
+    
+    virtual void setCompLookAndFeel(LookAndFeel* laf){
+        for(int i = 0; i<nbButtons; i++)
+            fButtons[i]->setLookAndFeel(laf);
     }
     
     virtual void reflectZone()
@@ -503,6 +525,8 @@ public:
             level = 0;
         }
     }
+    
+    virtual void setCompLookAndFeel(LookAndFeel* laf){ }
     
     void paint (Graphics& g) override
     {
