@@ -59,9 +59,9 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/MetaDataUI.h"
 
-struct Faust_layout: public GUI, public MetaDataUI, public Component
+struct Juce_GUI: public GUI, public MetaDataUI, public Component
 {
-    Faust_layout()
+    Juce_GUI()
     {
         order = 0;
         radioGroup = 0;
@@ -353,7 +353,7 @@ struct Faust_layout: public GUI, public MetaDataUI, public Component
         else{ dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds()); }
     }
     
-    ~Faust_layout(){
+    ~Juce_GUI(){
         std::cout<<std::endl<<"Destructing boxes"<<std::endl;
         
         delete currentBox;

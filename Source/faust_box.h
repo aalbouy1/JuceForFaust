@@ -16,11 +16,11 @@ class faustBox : public Component
 {
 public:
     
-    faustBox(bool vert, String boxName, int boxOrder, bool tab): order(boxOrder), name(boxName), vertical(vert), tabLayout(tab)
+    faustBox(bool vert, String boxName, int boxOrder, bool tab): fOrder(boxOrder), fName(boxName), isVertical(vert), tabLayout(tab)
     {
         recommendedHeight = 0;
         recommendedWidth = 0;
-        if(order == 0){ hRatio = 1; vRatio = 1; }
+        if(fOrder == 0){ hRatio = 1; vRatio = 1; }
     }
     
     void setChildLookAndFeel(LookAndFeel* laf){
@@ -71,31 +71,31 @@ public:
         for(int i = 0; i<getNumChildComponents(); i++){
             uiComponent* tempComp = dynamic_cast<uiComponent*>(getChildComponent(i));
             if(tempComp != 0){
-                if(vertical){
+                if(isVertical){
                     tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
                     tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
                     int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                    if(!(name.startsWith("0x")) && name.isNotEmpty() && i == 0){ tempComp->setCompSize(rect.removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
+                    if(!(fName.startsWith("0x")) && fName.isNotEmpty() && i == 0){ tempComp->setCompSize(rect.removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
                     else{ tempComp->setCompSize(rect.removeFromTop(heightToRemove).reduced(3)); }
                 }
                 else{                    
                     tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
                     tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
                     int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempComp->setCompSize(rect.removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
+                    if(!(fName.startsWith("0x")) && fName.isNotEmpty()){ tempComp->setCompSize(rect.removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
                     else{ tempComp->setCompSize(rect.removeFromLeft(widthToRemove).reduced(3)); }
                 }
             }
             else{
                 faustBox* tempBox = dynamic_cast<faustBox*>(getChildComponent(i));
-                if(vertical){
+                if(isVertical){
                     int heightToRemove = getSpaceToRemove(tempBox->vRatio);
-                    if(!(name.startsWith("0x")) && name.isNotEmpty() && i == 0){ tempBox->setBoxSize(rect.removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
+                    if(!(fName.startsWith("0x")) && fName.isNotEmpty() && i == 0){ tempBox->setBoxSize(rect.removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
                     else{ tempBox->setBoxSize(rect.removeFromTop(heightToRemove).reduced(3)); }
                 }
                 else{
                     int widthToRemove = getSpaceToRemove(tempBox->hRatio);
-                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempBox->setBoxSize(rect.removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
+                    if(!(fName.startsWith("0x")) && fName.isNotEmpty()){ tempBox->setBoxSize(rect.removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
                     else{ tempBox->setBoxSize(rect.removeFromLeft(widthToRemove).reduced(3)); }
                 }
             }
@@ -104,8 +104,8 @@ public:
     
     // Debug Output
     void writeBox(){
-        std::cout<<name<<" : "<<this<<std::endl;
-        std::cout<<"order : "<<order<<", itemCount : "<<getNumChildComponents()<<", parentIndex : "<<getParentComponent()<<std::endl;
+        std::cout<<fName<<" : "<<this<<std::endl;
+        std::cout<<"order : "<<fOrder<<", itemCount : "<<getNumChildComponents()<<", parentIndex : "<<getParentComponent()<<std::endl;
         std::cout<<"Rect : {"<<rect.toString()<<"}"<<std::endl;
         std::cout<<"CompBounds : {"<<getBounds().toString()<<"}"<<std::endl;
         std::cout<<"Recommended size : "<<recommendedWidth<<"x"<<recommendedHeight<<std::endl;
@@ -119,7 +119,7 @@ public:
     }
     
     int getSpaceToRemove(float ratio){
-        if(vertical){ return floor((float)getBounds().getHeight()*ratio); }
+        if(isVertical){ return floor((float)getBounds().getHeight()*ratio); }
         else{ return floor((float)getBounds().getWidth()*ratio); }
     }
     
@@ -133,7 +133,7 @@ public:
     
     void calculRecommendedSize(){
         for(int j = 0; j<getNumChildComponents(); j++){
-            if(vertical){
+            if(isVertical){
                 recommendedHeight += (getChildComponent(j)->Component::getHeight());
                 recommendedWidth   = jmax(recommendedWidth, getChildComponent(j)->Component::getWidth());
             }
@@ -162,20 +162,20 @@ public:
     void paint(Graphics& g) override
     {
         Colour col;
-        if      (order == 3){ col = Colours::white;}
-        else if (order == 2){ col = Colours::lightgrey;}
-        else if (order == 1){ col = Colours::grey; }
-        else if (order == 0){ col = Colours::darkgrey; }
+        if      (fOrder == 3){ col = Colours::white;}
+        else if (fOrder == 2){ col = Colours::lightgrey;}
+        else if (fOrder == 1){ col = Colours::grey; }
+        else if (fOrder == 0){ col = Colours::darkgrey; }
         g.setColour(col);
         g.fillRect(getLocalBounds());
       
         g.setColour(Colours::black);
-        if(!name.startsWith("0x")){ g.drawText(name, getLocalBounds() .withHeight(10), Justification::centred); }
+        if(!fName.startsWith("0x")){ g.drawText(fName, getLocalBounds() .withHeight(10), Justification::centred); }
     }
 
     ~faustBox(){
         int numChild = getNumChildComponents();
-        std::cout<<"order : "<<order<<", numChilds : "<<numChild<<std::endl;
+        std::cout<<"order : "<<fOrder<<", numChilds : "<<numChild<<std::endl;
         for(int i = numChild-1; i>=0; i--){
             if(dynamic_cast<faustBox*> (getChildComponent(i)) != nullptr)
                 delete dynamic_cast<faustBox*> (getChildComponent(i));
@@ -184,9 +184,9 @@ public:
 
     float hRatio, vRatio;
     int recommendedWidth, recommendedHeight;
-    int order;
-    String name;
-    bool vertical;
+    int fOrder;
+    String fName;
+    bool isVertical;
     bool tabLayout;
     Rectangle<int> rect;
 };

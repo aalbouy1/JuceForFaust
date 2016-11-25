@@ -29,12 +29,20 @@ enum VUMeterType{
     NumDisplay
 };
 
-struct uiComponent: public Component, uiItem, SettableTooltipClient
+class uiComponent: public Component, public uiItem, public SettableTooltipClient
 {
+public:
+    
     float vRatio, hRatio;
     int recomWidth, recomHeight;
-    String tooltipText;
+    String fTooltipText;
     
+    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip): uiItem(gui,zone), recomWidth(w), recomHeight(h), fTooltipText(tooltip)
+    {
+        std::cout<<"TOOLTIP : "<<fTooltipText<<std::endl;
+    }
+    
+    // Debug output
     void setCompSize(Rectangle<int> r){
         std::cout<<"New bounds of Component : {"<<r.toString()<<"}";
         std::cout<<", for parent : "<<getParentComponent()<<", "<<getParentComponent()->getBounds().toString()<<std::endl;
@@ -70,11 +78,6 @@ struct uiComponent: public Component, uiItem, SettableTooltipClient
     virtual void paint(Graphics& g) = 0;
     virtual void resized() = 0;
     virtual void setCompLookAndFeel(LookAndFeel* laf) = 0;
-    
-    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip): uiItem(gui,zone), recomWidth(w), recomHeight(h), tooltipText(tooltip)
-    {
-        std::cout<<"TOOLTIP : "<<tooltipText<<std::endl;
-    }
 };
 
 class uiSlider: public uiComponent,
@@ -82,70 +85,70 @@ private juce::Slider::Listener
 {
 private:
     
-    Slider::SliderStyle style;
-    Label label;
-    String sliderName;
+    Slider::SliderStyle fStyle;
+    Label fLabel;
+    String fName;
     ScopedPointer<ValueConverter> fConverter;
     int x, y, width, height;
-    SliderType type;
-    Slider slider;
+    SliderType fType;
+    Slider fSlider;
     
 public:
-    uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType kType) : uiComponent(gui, zone, w, h, tooltip), sliderName(name), type(kType)
+    uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, tooltip), fName(name), fType(type)
     {
         if (scale == MetaDataUI::kLog) 		{
             fConverter = new LogValueConverter(min, max, min, max);
-            slider.setSkewFactor(0.5);
+            fSlider.setSkewFactor(0.5);
         }
         else if (scale == MetaDataUI::kExp) {
             fConverter = new ExpValueConverter(min, max, min, max);
-            slider.setSkewFactor(2.0);
+            fSlider.setSkewFactor(2.0);
         }
         else { fConverter = new LinearValueConverter(min, max, min, max);}
         
-        switch(type){
+        switch(fType){
             case HSlider:
-                style = Slider::SliderStyle::LinearHorizontal;
+                fStyle = Slider::SliderStyle::LinearHorizontal;
                 break;
             case VSlider:
-                style = Slider::SliderStyle::LinearVertical;
-                slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+                fStyle = Slider::SliderStyle::LinearVertical;
+                fSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
                 break;
             case NumEntry:
-                slider.setIncDecButtonsMode(Slider::incDecButtonsDraggable_AutoDirection);
-                style = Slider::SliderStyle::IncDecButtons;
+                fSlider.setIncDecButtonsMode(Slider::incDecButtonsDraggable_AutoDirection);
+                fStyle = Slider::SliderStyle::IncDecButtons;
                 break;
             case Knob:
-                style = Slider::SliderStyle::Rotary;
-                slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+                fStyle = Slider::SliderStyle::Rotary;
+                fSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
                 break;
                 
             default:
                 break;
         }
-        addAndMakeVisible(slider);
+        addAndMakeVisible(fSlider);
         
         //Slider settings
-        slider.setBounds(getBounds());
-        slider.setRange(min, max, step);
-        slider.setValue(fConverter->faust2ui(cur));
-        slider.addListener(this);
-        slider.setSliderStyle(style);
-        slider.setTextValueSuffix(unit);
-        if(tooltipText.isNotEmpty()){ slider.setTooltip(tooltipText); }
+        fSlider.setBounds(getBounds());
+        fSlider.setRange(min, max, step);
+        fSlider.setValue(fConverter->faust2ui(cur));
+        fSlider.addListener(this);
+        fSlider.setSliderStyle(fStyle);
+        fSlider.setTextValueSuffix(unit);
+        if(fTooltipText.isNotEmpty()){ fSlider.setTooltip(fTooltipText); }
         
         //Label settings
-        if(type == HSlider || type == NumEntry){
-            label.setText(sliderName, dontSendNotification);
-            label.attachToComponent(&slider, true);
-            addAndMakeVisible (label);
-            if(tooltipText.isNotEmpty()){ label.setTooltip(tooltipText); }
+        if(fType == HSlider || fType == NumEntry){
+            fLabel.setText(fName, dontSendNotification);
+            fLabel.attachToComponent(&fSlider, true);
+            addAndMakeVisible (fLabel);
+            if(fTooltipText.isNotEmpty()){ fLabel.setTooltip(fTooltipText); }
         }
     }
     
     virtual void paint(Graphics& g) override{
         g.setColour (Colours::black);
-        if(type == VSlider || type == Knob) { g.drawText(sliderName, getLocalBounds(), Justification::centredTop); }
+        if(fType == VSlider || fType == Knob) { g.drawText(fName, getLocalBounds(), Justification::centredTop); }
         //else if(type == Knob) { g.drawText(sliderName, getLocalBounds(), Justification::centredTop); }
     }
 
@@ -153,27 +156,27 @@ public:
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
-        slider.setValue(fConverter->faust2ui(v));
+        fSlider.setValue(fConverter->faust2ui(v));
     }
 
     void sliderValueChanged(Slider* slider) override
     {
         float value = slider->getValue();
-        std::cout<<sliderName<<" : "<<value<<std::endl;
+        std::cout<<fName<<" : "<<value<<std::endl;
         modifyZone(value);
     }
 
     virtual void setCompLookAndFeel(LookAndFeel* laf){
-        slider.setLookAndFeel(laf);
+        fSlider.setLookAndFeel(laf);
     }
 
     virtual void resized() override{
-        std::cout<<sliderName<<", ";
-        if(type == HSlider){
+        std::cout<<fName<<", ";
+        if(fType == HSlider){
             x = getLocalBounds().reduced(3).getX() + 60; y = getLocalBounds().reduced(3).getY();
             width = getLocalBounds().reduced(3).getWidth()-60; height = getLocalBounds().reduced(3).getHeight();
         }
-        else if(type == NumEntry){
+        else if(fType == NumEntry){
             width = kNumEntryWidth-10; height = kNumEntryHeight-15;
             x = (getLocalBounds().reduced(3).getWidth()-width)/2; y = (getLocalBounds().reduced(3).getHeight()-height)/2;
         }
@@ -181,7 +184,7 @@ public:
             x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+11;
             height = getLocalBounds().reduced(3).getHeight()-12; width = getLocalBounds().reduced(3).getWidth();
         }
-        slider.setBounds(x, y, width, height);
+        fSlider.setBounds(x, y, width, height);
     }
 };
 
@@ -190,24 +193,24 @@ private juce::Button::Listener
 {
 private:
     
-    String name;
+    String fName;
     int x, y, width, height;
-    TextButton button;
+    TextButton fButton;
     
 public:
-    uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
+    uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip), fName(label), width(w), height(h)
     {
         x = getLocalBounds().getX()+10;
         width = kCheckButtonWidth;
         height = kCheckButtonHeight;
         y = (getLocalBounds().getHeight()-height)/2;
         
-        button.setButtonText(label);
-        button.setBounds(x, y, width, height);
-        button.addListener(this);
-        if(tooltipText.isNotEmpty()){ button.setTooltip(tooltipText); }
+        fButton.setButtonText(label);
+        fButton.setBounds(x, y, width, height);
+        fButton.addListener(this);
+        if(fTooltipText.isNotEmpty()){ fButton.setTooltip(fTooltipText); }
         
-        addAndMakeVisible(button);
+        addAndMakeVisible(fButton);
     }
     
     void buttonClicked (Button* button) override
@@ -227,7 +230,7 @@ public:
     }
     
     virtual void setCompLookAndFeel(LookAndFeel* laf){
-        button.setLookAndFeel(laf);
+        fButton.setLookAndFeel(laf);
     }
     
     virtual void paint(Graphics& g) override
@@ -237,41 +240,40 @@ public:
     virtual void resized() override
     {
         x = getLocalBounds().getX()+10;
-        height = getLocalBounds().reduced(3).getHeight();
         width = getLocalBounds().getWidth()-20;
+        height = jmin(getLocalBounds().getHeight(), kButtonHeight);
         y = (getLocalBounds().getHeight()-height)/2;
-        button.setBounds(x, y, width, height);
+        fButton.setBounds(x, y, width, height);
     }
 };
 
 class uiCheckButton: public uiComponent,
 private juce::Button::Listener
 {
-private:
-    
-    String name;
-    int x, y, width, height;
-    ToggleButton checkButton;
-    
 public:
-    uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
+    
+    String fName;
+    int x, y, width, height;
+    ToggleButton fCheckButton;
+    
+    uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) : uiComponent(gui, zone, w, h, tooltip), fName(label), width(w), height(h)
     {
         x = getLocalBounds().getX() + 10;
         y = (getLocalBounds().getHeight()-height)/2;
         
-        if(tooltipText.isNotEmpty()){ setTooltip(tooltipText); }
+        if(fTooltipText.isNotEmpty()){ setTooltip(fTooltipText); }
         
-        checkButton.setButtonText(label);
-        checkButton.setBounds(x, y, width, height);
-        checkButton.addListener(this);
-        if(tooltipText.isNotEmpty()){ checkButton.setTooltip(tooltipText); }
+        fCheckButton.setButtonText(label);
+        fCheckButton.setBounds(x, y, width, height);
+        fCheckButton.addListener(this);
+        if(fTooltipText.isNotEmpty()){ fCheckButton.setTooltip(fTooltipText); }
         
-        addAndMakeVisible(checkButton);
+        addAndMakeVisible(fCheckButton);
     }
     
     void buttonClicked(Button* button)
     {
-        std::cout<<name<<" : "<<button->getToggleState()<<std::endl;
+        std::cout<<fName<<" : "<<button->getToggleState()<<std::endl;
         modifyZone(button->getToggleState());
     }
     
@@ -282,7 +284,7 @@ public:
     }
     
     virtual void setCompLookAndFeel(LookAndFeel* laf){
-        checkButton.setLookAndFeel(laf);
+        fCheckButton.setLookAndFeel(laf);
     }
     
     virtual void paint(Graphics& g) override
@@ -294,7 +296,7 @@ public:
         std::cout<<"RESIZING CHECKBUTTON"<<std::endl;
         x = getLocalBounds().getX();
         y = getLocalBounds().getY();
-        checkButton.setBounds(x, y, jmin(getLocalBounds().getWidth(), width), jmin(getLocalBounds().getHeight(), height));
+        fCheckButton.setBounds(x, y, jmin(getLocalBounds().getWidth(), width), jmin(getLocalBounds().getHeight(), height));
     }
 };
 
@@ -303,13 +305,13 @@ private juce::ComboBox::Listener
 {
 private:
     ComboBox fComboBox;
-    String name;
+    String fName;
     int x, y, width, height;
     int nbItem;
     vector<double> fValues;
     
 public:
-    uiMenu(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, String tooltip, const char* mdescr) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h)
+    uiMenu(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, String tooltip, const char* mdescr) : uiComponent(gui, zone, w, h, tooltip), fName(label), width(w), height(h)
     {
         //Init ComboBox parameters
         fComboBox.setEditableText(false);
@@ -350,7 +352,7 @@ public:
     
     void comboBoxChanged (ComboBox* cb) override
     {
-        std::cout<<name<<" : "<<cb->getSelectedId() - 1<<std::endl;
+        std::cout<<fName<<" : "<<cb->getSelectedId() - 1<<std::endl;
         modifyZone(cb->getSelectedId() - 1);
     }
     
@@ -383,7 +385,7 @@ public:
     
     virtual void paint(Graphics& g){
         g.setColour(Colours::black);
-        g.drawText(name, getLocalBounds().withHeight(getLocalBounds().getHeight()/2), Justification::centredTop);
+        g.drawText(fName, getLocalBounds().withHeight(getLocalBounds().getHeight()/2), Justification::centredTop);
     }
 };
 
@@ -395,12 +397,12 @@ private:
     String name;
     int x, y, width, height;
     int nbButtons;
-    bool vertical;
+    bool isVertical;
     OwnedArray<ToggleButton> fButtons;
     vector<double> fValues;
     
 public:
-    uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, const char* mdescr, int radioGroupID) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h), vertical(vert)
+    uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, const char* mdescr, int radioGroupID) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h), isVertical(vert)
     {
         x = getLocalBounds().getX() + 10;
         y = (getLocalBounds().getHeight()-kCheckButtonHeight)/2;
@@ -423,7 +425,7 @@ public:
                     fValues.push_back(v);
                     fButtons.add(tb);
                     
-                    if(tooltipText.isNotEmpty()){ tb->setTooltip(tooltipText); }
+                    if(fTooltipText.isNotEmpty()){ tb->setTooltip(fTooltipText); }
                     // Check if this item is a good candidate to represent the current value
                     double delta = fabs(cur-v);
                     if (delta < mindelta) {
@@ -439,13 +441,13 @@ public:
     
     void setVRatio(float ratio) override
     {
-        if(vertical){ vRatio = ratio * nbButtons; }
+        if(isVertical){ vRatio = ratio * nbButtons; }
         else{ vRatio = ratio; }
     }
     
     void setHRatio(float ratio) override
     {
-        if(!vertical){ hRatio = ratio * nbButtons; }
+        if(!isVertical){ hRatio = ratio * nbButtons; }
         else{ hRatio = ratio; }
     }
     
@@ -474,9 +476,10 @@ public:
     }
     
     virtual void resized(){
-        vertical ? height = (getLocalBounds().getHeight()-25) / nbButtons : width = getLocalBounds().getWidth() / nbButtons;
+        isVertical ? height = (getLocalBounds().getHeight()-25) / nbButtons : width = getLocalBounds().getWidth() / nbButtons;
+        
         for(int i = 0; i < nbButtons; i++){
-            if(vertical){ fButtons.operator[](i)->setBounds(0, i * height + 25, 100, height); }
+            if(isVertical){ fButtons.operator[](i)->setBounds(0, i * height + 25, 100, height); }
             else{ fButtons.operator[](i)->setBounds(i * width, 25, width, 30); }
         }
     }
@@ -498,18 +501,18 @@ class VUMeter  : public uiComponent, public Timer
 {
 public:
     VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, VUMeterType style, bool vert)
-    : uiComponent(gui, zone, w, h, tooltip), min(mini), max(maxi), fStyle(style), name(label)
+    : uiComponent(gui, zone, w, h, tooltip), fMin(mini), fMax(maxi), fStyle(style), fName(label)
     {
-        level = 0;
+        fLevel = 0;
         startTimer (50);
-        this->unit = unit;
+        this->fUnit = unit;
         (unit == "dB") ? db = true : db = false;
         if(db){
-            fScaleMin = dB2Scale(min);
-            fScaleMax = dB2Scale(max);
+            fScaleMin = dB2Scale(fMin);
+            fScaleMax = dB2Scale(fMax);
         }
-        (!(name.startsWith("0x")) && name.isNotEmpty()) ? isBargraphNameShown = true : isBargraphNameShown = false;
-        if(tooltipText.isNotEmpty()){ setTooltip(tooltipText); }
+        (!(fName.startsWith("0x")) && fName.isNotEmpty()) ? isBargraphNameShown = true : isBargraphNameShown = false;
+        if(fTooltipText.isNotEmpty()){ setTooltip(fTooltipText); }
         if(fStyle != Led){ setupTextEditor(); }
     }
     
@@ -522,7 +525,7 @@ public:
         }
         else
         {
-            level = 0;
+            fLevel = 0;
         }
     }
     
@@ -530,10 +533,10 @@ public:
     
     void paint (Graphics& g) override
     {
-        if     (fStyle == Led)       { drawLed (g, kLedWidth/2, kLedHeight/2, level); }
-        else if(fStyle == NumDisplay){ drawNumDisplay(g, kNumDisplayWidth, kNumDisplayHeight/2, level); }
-        else if(fStyle == VVUMeter)  { drawVBargraph(g, kVBargraphWidth/2 , getHeight(), level, db); }
-        else                         { drawHBargraph (g, getWidth(), kHBargraphHeight/2, level, db); }
+        if     (fStyle == Led)       { drawLed (g, kLedWidth/2, kLedHeight/2, fLevel); }
+        else if(fStyle == NumDisplay){ drawNumDisplay(g, kNumDisplayWidth, kNumDisplayHeight/2, fLevel); }
+        else if(fStyle == VVUMeter)  { drawVBargraph(g, kVBargraphWidth/2 , getHeight(), fLevel, db); }
+        else                         { drawHBargraph (g, getWidth(), kHBargraphHeight/2, fLevel, db); }
     }
     
     void resized() override{
@@ -547,31 +550,31 @@ public:
     }
     
 private:
-    float level;
-    float min, max;
+    float fLevel;
+    float fMin, fMax;
     float fScaleMin, fScaleMax;
     bool db;
     VUMeterType fStyle;
-    String unit;
-    Label label;
-    String name;
+    String fUnit;
+    Label fLabel;
+    String fName;
     bool isBargraphNameShown;
     
     void setTextEditorPos(){
-        if     (fStyle == VVUMeter)   { label.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
-        else if(fStyle == HVUMeter)   { isBargraphNameShown ? label.setBounds(63, (getHeight()-20)/2, 50, 20) : label.setBounds(3, (getHeight()-20)/2, 50, 20); }
-        else if(fStyle == NumDisplay) { label.setBounds(getLocalBounds().getX(), getLocalBounds().getY(), jmax(1,jmin(kNumDisplayWidth, getWidth()))-2, jmax(1,jmin(kNumDisplayHeight/2, getHeight()))-2); }
+        if     (fStyle == VVUMeter)   { fLabel.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
+        else if(fStyle == HVUMeter)   { isBargraphNameShown ? fLabel.setBounds(63, (getHeight()-20)/2, 50, 20) : fLabel.setBounds(3, (getHeight()-20)/2, 50, 20); }
+        else if(fStyle == NumDisplay) { fLabel.setBounds(getLocalBounds().getX(), getLocalBounds().getY(), jmax(1,jmin(kNumDisplayWidth, getWidth()))-2, jmax(1,jmin(kNumDisplayHeight/2, getHeight()))-2); }
         // LED Label ?
     }
     
     void setupTextEditor(){
         setTextEditorPos();
-        label.setEditable(false, false, false);
-        label.setJustificationType(Justification::centred);
-        label.setText(String((int)*fZone) + unit, dontSendNotification);
-        if(tooltipText.isNotEmpty()){ label.setTooltip(tooltipText); }
+        fLabel.setEditable(false, false, false);
+        fLabel.setJustificationType(Justification::centred);
+        fLabel.setText(String((int)*fZone) + fUnit, dontSendNotification);
+        if(fTooltipText.isNotEmpty()){ fLabel.setTooltip(fTooltipText); }
         
-        addAndMakeVisible(label);
+        addAndMakeVisible(fLabel);
     }
     
     void drawHBargraph(Graphics& g, int width, int height, float level, bool dB){
@@ -583,7 +586,7 @@ private:
             
             // VUMeter Name
             g.setColour(Colours::black);
-            g.drawText(name, 0, y, 60, height, Justification::centredRight);
+            g.drawText(fName, 0, y, 60, height, Justification::centredRight);
         }
         else{
             x = 60;
@@ -610,13 +613,13 @@ private:
         // Drawing Scale
         g.setFont(9.0f);
         g.setColour(Colours::white);
-        for(int i = -10; i > min; i -= 10){ paintScale(g, i); }
-        for(int i = -6; i < max; i += 3)  { paintScale(g, i); }
+        for(int i = -10; i > fMin; i -= 10){ paintScale(g, i); }
+        for(int i = -6; i < fMax; i += 3)  { paintScale(g, i); }
         
         int alpha = 200;
         
         g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-        g.fillRect(dB2x(min), y+1.0f, jmin(dB2x(level)-dB2x(min), dB2x(-10)-dB2x(min)), (float) height-2);
+        g.fillRect(dB2x(fMin), y+1.0f, jmin(dB2x(level)-dB2x(fMin), dB2x(-10)-dB2x(fMin)), (float) height-2);
         
         if(dB2Scale(level) > dB2Scale(-10)){
             g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
@@ -632,7 +635,7 @@ private:
         }
         if(dB2Scale(level) > dB2Scale(0)){
             g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
-            g.fillRect(dB2x(0), y+1.0f, jmin(dB2x(level)-dB2x(0), dB2x(max)-dB2x(0)), (float) height-2);
+            g.fillRect(dB2x(0), y+1.0f, jmin(dB2x(level)-dB2x(0), dB2x(fMax)-dB2x(0)), (float) height-2);
         }
     }
     
@@ -663,7 +666,7 @@ private:
             
             // VUMeter Name
             g.setColour(Colours::black);
-            g.drawText(name, getLocalBounds(), Justification::centredTop);
+            g.drawText(fName, getLocalBounds(), Justification::centredTop);
         }
         else{ y = (float) getLocalBounds().getHeight()-height; height -= 25; }
         
@@ -687,13 +690,13 @@ private:
         // Drawing Scale
         g.setFont(9.0f);
         g.setColour(Colours::white);
-        for(int i = -10; i > min; i -= 10){ paintScale(g, i); }
-        for(int i = -6; i < max; i += 3)  { paintScale(g, i); }
+        for(int i = -10; i > fMin; i -= 10){ paintScale(g, i); }
+        for(int i = -6; i < fMax; i += 3)  { paintScale(g, i); }
         
         
         int alpha = 200;
         g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-        g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-10)), (float) width-2, dB2y(min)-jmax(dB2y(level), dB2y(-10)));
+        g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-10)), (float) width-2, dB2y(fMin)-jmax(dB2y(level), dB2y(-10)));
         
         if(dB2Scale(level) > dB2Scale(-10)){
             g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
@@ -709,7 +712,7 @@ private:
         }
         if(dB2Scale(level) > dB2Scale(0)){
             g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
-            g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(max)), (float) width-2, dB2y(0)-jmax(dB2y(level), dB2y(max)));
+            g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(fMax)), (float) width-2, dB2y(0)-jmax(dB2y(level), dB2y(fMax)));
         }
     }
     
@@ -718,7 +721,7 @@ private:
         Colour c = juce::Colour((uint8)255, (uint8)165, (uint8)0, (uint8)alpha);
         
         g.setColour(c.brighter());
-        g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.2f)), (float) width-2, lin2y(min)-jmax(lin2y(level), lin2y(0.2f)));
+        g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.2f)), (float) width-2, lin2y(fMin)-jmax(lin2y(level), lin2y(0.2f)));
         
         if(level > 0.2f){
             g.setColour(c);
@@ -727,7 +730,7 @@ private:
         
         if(level > 0.9f){
             g.setColour(c.darker());
-            g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(max)), (float) width-2, lin2y(0.9)-jmax(lin2y(level), lin2y(max)));
+            g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(fMax)), (float) width-2, lin2y(0.9)-jmax(lin2y(level), lin2y(fMax)));
         }
     }
     
@@ -833,17 +836,17 @@ private:
         float rawLevel = *fZone;
         
         if(db){
-            level = rawLevel;
-            if(level > max)     { level = max; }
-            else if(level < min){ level = min; }
+            fLevel = rawLevel;
+            if(fLevel > fMax)     { fLevel = fMax; }
+            else if(fLevel < fMin){ fLevel = fMin; }
         }
         else{
-            level = (rawLevel-min)/(max-min);
-            if(level > 1)       { level = 1; }
-            else if(level < 0)  { level = 0; }
+            fLevel = (rawLevel-fMin)/(fMax-fMin);
+            if(fLevel > 1)       { fLevel = 1; }
+            else if(fLevel < 0)  { fLevel = 0; }
         }
         
-        label.setText(String((int)rawLevel)+unit, dontSendNotification);
+        fLabel.setText(String((int)rawLevel)+fUnit, dontSendNotification);
     }
 };
 

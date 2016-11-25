@@ -36,7 +36,7 @@ public:
     }
     
     void addTabs(String label, Component* comp){
-        TabbedComponent::addTab(label, getRandomTabBackgroundColour(), comp, true);
+        TabbedComponent::addTab(label, Colours::darkgrey, comp, true);
         for(int i = 0; i<getNumChildComponents(); i++){
             faustBox* box = dynamic_cast<faustBox*>(getChildComponent(i));
             if(box !=0)

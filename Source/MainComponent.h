@@ -16,7 +16,7 @@
 
 // Select here the compiled DSP that you want to execute
 //#include "DSP files/noise.h"                  //OK
-#include "DSP files/kisana.h"                 //OK
+//#include "DSP files/kisana.h"                 //OK
 //#include "DSP files/kisana - copie.h"         //OK
 //#include "DSP Files/matrix.h"                 //OK
 //#include "DSP files/karplus.h"                //OK
@@ -24,7 +24,7 @@
 //#include "DSP Files/karplus_synth.h"          //OK
 //#include "DSP Files/karplus32bis.h"           //OK
 //#include "DSP Files/UITester.h"               //OK
-//#include "DSP Files/cubic_distortion.h"       //OK
+#include "DSP Files/cubic_distortion.h"       //OK
 //#include "DSP Files/cubic_distortion-NumDisplay.h"   //OK
 //#include "DSP Files/cubic_distortion-LED.h"   //OK
 //#include "DSP Files/cubic_distortion-Horiz.h" //OK
@@ -49,13 +49,13 @@ public:
         
         //fDSP = new mydsp_poly(fDSP.release(), 32, true);
         
-        fDSP->buildUserInterface(&layout);
+        fDSP->buildUserInterface(&juceGUI);
         
-        addAndMakeVisible(layout);
+        addAndMakeVisible(juceGUI);
         
-        layout.init();
+        juceGUI.init();
         
-        recommendedSize = layout.getSize();
+        recommendedSize = juceGUI.getSize();
         setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 
         // specify the number of input and output channels that we want to open
@@ -109,8 +109,8 @@ public:
     void resized() override
     {
         std::cout<<std::endl<<"RESIZING"<<std::endl<<std::endl;
-        layout.setSize(getLocalBounds());
-        layout.setBounds(getLocalBounds());
+        juceGUI.setSize(getLocalBounds());
+        juceGUI.setBounds(getLocalBounds());
     }
 
     Rectangle<int> getMinSize(){
@@ -122,7 +122,7 @@ public:
     }
 
 private:
-    Faust_layout layout;
+    Juce_GUI juceGUI;
 
     ScopedPointer<dsp> fDSP;
 

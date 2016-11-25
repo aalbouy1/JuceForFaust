@@ -95,22 +95,22 @@ public:
         {
             setUsingNativeTitleBar (true);
             
-            MainContentComponent* window = createMainContentComponent();
+            MainContentComponent* fWindow = createMainContentComponent();
             setResizable (true, false);
             setResizeLimits(30, 30, 10000, 10000);
             
             centreWithSize (getWidth(), getHeight());
             setVisible(true);
             
-            int minWidth  = window->getMinSize().getWidth();
-            int minHeight = window->getMinSize().getHeight();
-            int recomWidth = window->getRecommendedSize().getWidth();
-            int recomHeight = window->getRecommendedSize().getHeight();
+            int minWidth  = fWindow->getMinSize().getWidth();
+            int minHeight = fWindow->getMinSize().getHeight();
+            int recomWidth = fWindow->getRecommendedSize().getWidth();
+            int recomHeight = fWindow->getRecommendedSize().getHeight();
             
-            viewport = new myViewport(name, minWidth, minHeight, recomWidth, recomHeight);
-            viewport->setViewedComponent(window);
-            viewport->setSize(minWidth, minHeight);
-            setContentOwned(viewport, true);
+            fViewport = new myViewport(name, minWidth, minHeight, recomWidth, recomHeight);
+            fViewport->setViewedComponent(fWindow);
+            fViewport->setSize(minWidth, minHeight);
+            setContentOwned(fViewport, true);
         }
 
         void closeButtonPressed() override
@@ -129,7 +129,7 @@ public:
         */
 
     private:
-        ScopedPointer<myViewport> viewport;
+        ScopedPointer<myViewport> fViewport;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
     
