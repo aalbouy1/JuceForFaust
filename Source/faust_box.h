@@ -12,7 +12,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "faust_layout.h"
 
-class faustBox : public Rectangle<int>, public Component
+class faustBox : public Component
 {
 public:
     
@@ -47,24 +47,23 @@ public:
     
     void setBoxSize(Rectangle<int> r){
         
-        Rectangle::setSize(r.getWidth(), r.getHeight());
+        rect.setSize(r.getWidth(), r.getHeight());
         Component::setSize(r.getWidth(), r.getHeight());
         
         if(findParentComponentOfClass<faustBox>() != nullptr){
-            setPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
+            rect.setPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
             setTopLeftPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
         }
         else{
             if(tabLayout){
-                setPosition(r.getX()+1, r.getY()+30);
+                rect.setPosition(r.getX()+1, r.getY()+30);
                 setTopLeftPosition(r.getX()+1, r.getY()+30);
             }
             else{
-                setPosition(r.getX(), r.getY());
+                rect.setPosition(r.getX(), r.getY());
                 setTopLeftPosition(r.getX(), r.getY());
             }
         }
-        originalBounds = getLocalBounds();
     }
     
     void layoutComponents()
@@ -76,28 +75,28 @@ public:
                     tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
                     tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
                     int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                    if(!(name.startsWith("0x")) && name.isNotEmpty() && i == 0){ tempComp->setCompSize(this->removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ tempComp->setCompSize(this->removeFromTop(heightToRemove).reduced(3)); }
+                    if(!(name.startsWith("0x")) && name.isNotEmpty() && i == 0){ tempComp->setCompSize(rect.removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
+                    else{ tempComp->setCompSize(rect.removeFromTop(heightToRemove).reduced(3)); }
                 }
                 else{                    
                     tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
                     tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
                     int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempComp->setCompSize(this->removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ tempComp->setCompSize(this->removeFromLeft(widthToRemove).reduced(3)); }
+                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempComp->setCompSize(rect.removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
+                    else{ tempComp->setCompSize(rect.removeFromLeft(widthToRemove).reduced(3)); }
                 }
             }
             else{
                 faustBox* tempBox = dynamic_cast<faustBox*>(getChildComponent(i));
                 if(vertical){
                     int heightToRemove = getSpaceToRemove(tempBox->vRatio);
-                    if(!(name.startsWith("0x")) && name.isNotEmpty() && i == 0){ tempBox->setBoxSize(this->removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ tempBox->setBoxSize(this->removeFromTop(heightToRemove).reduced(3)); }
+                    if(!(name.startsWith("0x")) && name.isNotEmpty() && i == 0){ tempBox->setBoxSize(rect.removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
+                    else{ tempBox->setBoxSize(rect.removeFromTop(heightToRemove).reduced(3)); }
                 }
                 else{
                     int widthToRemove = getSpaceToRemove(tempBox->hRatio);
-                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempBox->setBoxSize(this->removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ tempBox->setBoxSize(this->removeFromLeft(widthToRemove).reduced(3)); }
+                    if(!(name.startsWith("0x")) && name.isNotEmpty()){ tempBox->setBoxSize(rect.removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
+                    else{ tempBox->setBoxSize(rect.removeFromLeft(widthToRemove).reduced(3)); }
                 }
             }
         }
@@ -107,8 +106,7 @@ public:
     void writeBox(){
         std::cout<<name<<" : "<<this<<std::endl;
         std::cout<<"order : "<<order<<", itemCount : "<<getNumChildComponents()<<", parentIndex : "<<getParentComponent()<<std::endl;
-        std::cout<<"OriginalBounds : {"<<originalBounds.getX()<<", "<<originalBounds.getY()<<", "<<originalBounds.getWidth()<<", "<<originalBounds.getHeight()<<"}"<<std::endl;
-        std::cout<<"Rect : {"<<toString()<<"}"<<std::endl;
+        std::cout<<"Rect : {"<<rect.toString()<<"}"<<std::endl;
         std::cout<<"CompBounds : {"<<getBounds().toString()<<"}"<<std::endl;
         std::cout<<"Recommended size : "<<recommendedWidth<<"x"<<recommendedHeight<<std::endl;
         std::cout<<"Ratios : "<<vRatio<<", "<<hRatio<<std::endl;
@@ -121,8 +119,8 @@ public:
     }
     
     int getSpaceToRemove(float ratio){
-        if(vertical){ return floor((float)originalBounds.getHeight()*ratio); }
-        else{ return floor((float)originalBounds.getWidth()*ratio); }
+        if(vertical){ return floor((float)getBounds().getHeight()*ratio); }
+        else{ return floor((float)getBounds().getWidth()*ratio); }
     }
     
     void addChildBox(faustBox* box){
@@ -144,7 +142,6 @@ public:
                 recommendedHeight = jmax(recommendedHeight, getChildComponent(j)->Component::getHeight());
             }
         }
-        originalBounds = Rectangle<int>(Component::getY(), Component::getX(), recommendedWidth, recommendedHeight);
         Component::setSize(recommendedWidth, recommendedHeight);
     }
     
@@ -163,17 +160,17 @@ public:
     }
 
     void paint(Graphics& g) override
-    {/*
+    {
         Colour col;
         if      (order == 3){ col = Colours::white;}
         else if (order == 2){ col = Colours::lightgrey;}
         else if (order == 1){ col = Colours::grey; }
         else if (order == 0){ col = Colours::darkgrey; }
         g.setColour(col);
-        g.fillRect(originalBounds);
-      */
+        g.fillRect(getLocalBounds());
+      
         g.setColour(Colours::black);
-        if(!name.startsWith("0x")){ g.drawText(name, originalBounds .withHeight(10), Justification::centred); }
+        if(!name.startsWith("0x")){ g.drawText(name, getLocalBounds() .withHeight(10), Justification::centred); }
     }
 
     ~faustBox(){
@@ -187,11 +184,11 @@ public:
 
     float hRatio, vRatio;
     int recommendedWidth, recommendedHeight;
-    Rectangle<int> originalBounds;
     int order;
     String name;
     bool vertical;
     bool tabLayout;
+    Rectangle<int> rect;
 };
 
 #endif
