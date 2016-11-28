@@ -40,7 +40,7 @@ public:
         for(int i = 0; i<getNumChildComponents(); i++){
             faustBox* box = dynamic_cast<faustBox*>(getChildComponent(i));
             if(box !=0)
-                std::cout<<"childs : "<<box->name<<", ";
+                std::cout<<"childs : "<<box->fName<<", ";
         }
         std::cout<<std::endl;
     }

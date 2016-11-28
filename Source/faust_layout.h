@@ -122,7 +122,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
             parentBox = currentBox->findParentComponentOfClass<faustBox>(); // Return comp parent of type 'faustBox'
         }
         if(tabLayout && order == 0){
-            std::cout<<"Adding Box "<<currentBox->name<<" to tab "<<tabName<<std::endl;
+            std::cout<<"Adding Box "<<currentBox->fName<<" to tab "<<tabName<<std::endl;
             tabs.addTabs(tabName, currentBox);
             tabName.clear();
             addAndMakeVisible(tabs);
@@ -135,7 +135,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
         else if(isRadio(zone)){ addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), false); }
         else if(isMenu(zone)){ addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str()); }
         else{
-            if(currentBox->vertical){
+            if(currentBox->isVertical){
                 currentBox->recommendedHeight   += kHSliderHeight;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHSliderWidth);
             }
@@ -153,7 +153,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
         else if(isRadio(zone)){ addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), true); }
         else if(isMenu(zone)){ addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str()); }
         else{
-            if(currentBox->vertical){
+            if(currentBox->isVertical){
                 currentBox->recommendedHeight   += kVSliderHeight;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kVSliderWidth);
             }
@@ -168,7 +168,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
     
     void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr){
-        if(currentBox->vertical){
+        if(currentBox->isVertical){
             currentBox->recommendedHeight   += kMenuHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kMenuWidth);
         }
@@ -187,7 +187,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
         int nbButtons = names.size();
         radioGroup++;
         
-        if(currentBox->vertical){
+        if(currentBox->isVertical){
             if(vert){
                 currentBox->recommendedHeight   += nbButtons * (kRadioButtonHeight - 25) + 25;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kCheckButtonWidth);
@@ -216,7 +216,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
     
     void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){
-        if(currentBox->vertical){
+        if(currentBox->isVertical){
             currentBox->recommendedHeight   += kKnobHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kKnobWidth);
         }
@@ -230,7 +230,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone){
-        if(currentBox->vertical){
+        if(currentBox->isVertical){
             currentBox->recommendedHeight   += kButtonHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kButtonWidth);
         }
@@ -244,7 +244,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
 
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone){
-        if(currentBox->vertical){
+        if(currentBox->isVertical){
             currentBox->recommendedHeight   += kCheckButtonHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kCheckButtonWidth);
         }
@@ -258,7 +258,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
 
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        if(currentBox->vertical){
+        if(currentBox->isVertical){
             currentBox->recommendedHeight   += kNumEntryHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kNumEntryWidth);
         }
@@ -276,7 +276,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
         if(isLed(zone)){ addLed(String(label), zone, min, max); }
         else if(isNumerical(zone)){ addNumericalDisplay(String(label), zone, min, max); }
         else{
-            if(currentBox->vertical){
+            if(currentBox->isVertical){
                 currentBox->recommendedHeight   += kHBargraphHeight;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHBargraphWidth);
             }
@@ -293,7 +293,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
         if(isLed(zone)){ addLed(String(label), zone, min, max); }
         else if(isNumerical(zone)){ addNumericalDisplay(String(label), zone, min, max); }
         else{
-            if(currentBox->vertical){
+            if(currentBox->isVertical){
                 currentBox->recommendedHeight   += kVBargraphHeight;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kVBargraphWidth);
             }
@@ -306,7 +306,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
     
     void addLed (String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max){
-        if(currentBox->vertical){
+        if(currentBox->isVertical){
             currentBox->recommendedHeight   += kLedHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kLedWidth);
         }
@@ -319,7 +319,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
     
     void addNumericalDisplay(String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max){
-        if(currentBox->vertical){
+        if(currentBox->isVertical){
             currentBox->recommendedHeight   += kNumDisplayHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kNumDisplayWidth);
         }
