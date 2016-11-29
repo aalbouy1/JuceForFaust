@@ -5,14 +5,11 @@
               jucerVersion="4.3.0">
   <MAINGROUP id="QPZtN1" name="Rectangle AudioApp">
     <GROUP id="{9BA54E73-8A9C-DD5D-C876-2C85CD9C7B4F}" name="Source">
-      <FILE id="Bu1WdA" name="advanced_leak_detector.h" compile="0" resource="0"
-            file="Source/advanced_leak_detector.h"/>
-      <FILE id="TtdrEE" name="faust_box.h" compile="0" resource="0" file="Source/faust_box.h"/>
-      <FILE id="TFDGiB" name="faust_layout.h" compile="0" resource="0" file="Source/faust_layout.h"/>
-      <FILE id="CRkjKK" name="faust_tabs.h" compile="0" resource="0" file="Source/faust_tabs.h"/>
+      <FILE id="DcbbcJ" name="CustomLookAndFeel.h" compile="0" resource="0"
+            file="Source/CustomLookAndFeel.h"/>
       <FILE id="XpPQjo" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="AjRBt0" name="Juce_GUI.h" compile="0" resource="0" file="Source/Juce_GUI.h"/>
       <FILE id="IFCXRB" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
-      <FILE id="w8SJeS" name="UI_Component.h" compile="0" resource="0" file="Source/UI_Component.h"/>
       <GROUP id="{8663FF28-FAF1-2C71-3729-976510745DB1}" name="DSP Files">
         <FILE id="lswOs5" name="cubic_distortion-Horiz.h" compile="0" resource="0"
               file="Source/DSP Files/cubic_distortion-Horiz.h"/>

@@ -12,7 +12,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "CustomLookAndFeel.h"
 
-#include "faust_layout.h"
+#include "Juce_GUI.h"
 
 // Select here the compiled DSP that you want to execute
 //#include "DSP files/noise.h"                  //OK
@@ -23,8 +23,8 @@
 //#include "DSP Files/karplus32.h"              //OK
 //#include "DSP Files/karplus_synth.h"          //OK
 //#include "DSP Files/karplus32bis.h"           //OK
-//#include "DSP Files/UITester.h"               //OK
-#include "DSP Files/cubic_distortion.h"       //OK
+#include "DSP Files/UITester.h"               //OK
+//#include "DSP Files/cubic_distortion.h"       //OK
 //#include "DSP Files/cubic_distortion-NumDisplay.h"   //OK
 //#include "DSP Files/cubic_distortion-LED.h"   //OK
 //#include "DSP Files/cubic_distortion-Horiz.h" //OK
