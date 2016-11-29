@@ -10,7 +10,6 @@
 #define MAINCOMPONENT_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "CustomLookAndFeel.h"
 
 #include "Juce_GUI.h"
 
@@ -23,11 +22,11 @@
 //#include "DSP Files/karplus32.h"              //OK
 //#include "DSP Files/karplus_synth.h"          //OK
 //#include "DSP Files/karplus32bis.h"           //OK
-#include "DSP Files/UITester.h"               //OK
+//#include "DSP Files/UITester.h"               //OK
 //#include "DSP Files/cubic_distortion.h"       //OK
 //#include "DSP Files/cubic_distortion-NumDisplay.h"   //OK
 //#include "DSP Files/cubic_distortion-LED.h"   //OK
-//#include "DSP Files/cubic_distortion-Horiz.h" //OK
+//#include "DSP Files/cubic_distortion-Horiz.cpp" //OK
 //#include "DSP Files/tester2.h"                //OK
 //#include "DSP Files/dbmeter.h"                //OK
 
