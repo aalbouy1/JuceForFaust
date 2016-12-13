@@ -1,14 +1,3 @@
-//
-//  faust_layout.h
-//  RectangleTest
-//
-//  Created by Adrien Albouy on 14/10/2016.
-//
-//
-
-#ifndef RectangleTest_faust_layout_h
-#define RectangleTest_faust_layout_h
-
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -51,8 +40,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "MainComponent.h"
-
 #include "faust/gui/GUI.h"
 #include "faust/gui/MetaDataUI.h"
 #include "faust/gui/ValueConverter.h"
@@ -81,11 +68,11 @@ struct CustomLookAndFeel    : public LookAndFeel_V3
     void drawButtonBackground (Graphics& g, Button& button, const Colour& backgroundColour,
                                bool isMouseOverButton, bool isButtonDown) override
     {
-    Colour baseColour (backgroundColour.withMultipliedSaturation (button.hasKeyboardFocus (true) ? 1.3f : 0.9f)
-                       .withMultipliedAlpha (button.isEnabled() ? 0.9f : 0.5f));
+        Colour baseColour (backgroundColour.withMultipliedSaturation (button.hasKeyboardFocus (true) ? 1.3f : 0.9f)
+                           .withMultipliedAlpha (button.isEnabled() ? 0.9f : 0.5f));
     
-    if (isButtonDown || isMouseOverButton)
-        baseColour = baseColour.contrasting (isButtonDown ? 0.2f : 0.1f);
+        if (isButtonDown || isMouseOverButton)
+            baseColour = baseColour.contrasting (isButtonDown ? 0.2f : 0.1f);
         
         const bool flatOnLeft   = button.isConnectedOnLeft();
         const bool flatOnRight  = button.isConnectedOnRight();
@@ -115,100 +102,91 @@ struct CustomLookAndFeel    : public LookAndFeel_V3
             g.setColour (baseColour);
             g.fillPath (outline);
             
-            if (! button.getToggleState())
-            {
+            if (! button.getToggleState()) {
                 g.setColour (outlineColour);
                 g.strokePath (outline, PathStrokeType (lineThickness));
             }
         }
-}
-
-void drawTickBox (Graphics& g, Component& component,
-                  float x, float y, float w, float h,
-                  bool ticked,
-                  bool isEnabled,
-                  bool isMouseOverButton,
-                  bool isButtonDown) override
-{
-const float boxSize = w * 0.7f;
-
-bool isDownOrDragging = component.isEnabled() && (component.isMouseOverOrDragging() || component.isMouseButtonDown());
-const Colour colour (component.findColour (TextButton::buttonColourId).withMultipliedSaturation ((component.hasKeyboardFocus (false) || isDownOrDragging) ? 1.3f : 0.9f)
-                     .withMultipliedAlpha (component.isEnabled() ? 1.0f : 0.7f));
-
-drawRoundThumb (g, x, y + (h - boxSize) * 0.5f, boxSize, colour,
-                isEnabled ? ((isButtonDown || isMouseOverButton) ? 1.1f : 0.5f) : 0.3f);
-
-if (ticked)
-{
-    const Path tick (LookAndFeel_V2::getTickShape (6.0f));
-    g.setColour (isEnabled ? findColour (TextButton::buttonOnColourId) : Colours::grey);
-    
-    const float scale = 9.0f;
-    const AffineTransform trans (AffineTransform::scale (w / scale, h / scale)
-                                 .translated (x - 2.5f, y + 1.0f));
-    g.fillPath (tick, trans);
-}
-}
-
-void drawLinearSliderThumb (Graphics& g, int x, int y, int width, int height,
-                            float sliderPos, float minSliderPos, float maxSliderPos,
-                            const Slider::SliderStyle style, Slider& slider) override
-{
-const float sliderRadius = (float) (getSliderThumbRadius (slider) - 2);
-
-bool isDownOrDragging = slider.isEnabled() && (slider.isMouseOverOrDragging() || slider.isMouseButtonDown());
-Colour knobColour (slider.findColour (Slider::thumbColourId).withMultipliedSaturation ((slider.hasKeyboardFocus (false) || isDownOrDragging) ? 1.3f : 0.9f)
-                   .withMultipliedAlpha (slider.isEnabled() ? 1.0f : 0.7f));
-
-if (style == Slider::LinearHorizontal || style == Slider::LinearVertical)
-{
-    float kx, ky;
-    
-    if (style == Slider::LinearVertical)
-    {
-        kx = x + width * 0.5f;
-        ky = sliderPos;
     }
-    else
+
+    void drawTickBox (Graphics& g, Component& component,
+                      float x, float y, float w, float h,
+                      bool ticked,
+                      bool isEnabled,
+                      bool isMouseOverButton,
+                      bool isButtonDown) override
     {
-        kx = sliderPos;
-        ky = y + height * 0.5f;
+        const float boxSize = w * 0.7f;
+
+        bool isDownOrDragging = component.isEnabled() && (component.isMouseOverOrDragging() || component.isMouseButtonDown());
+        const Colour colour (component.findColour (TextButton::buttonColourId).withMultipliedSaturation ((component.hasKeyboardFocus (false) || isDownOrDragging) ? 1.3f : 0.9f)
+                             .withMultipliedAlpha (component.isEnabled() ? 1.0f : 0.7f));
+
+        drawRoundThumb (g, x, y + (h - boxSize) * 0.5f, boxSize, colour,
+                    isEnabled ? ((isButtonDown || isMouseOverButton) ? 1.1f : 0.5f) : 0.3f);
+
+        if (ticked) {
+            const Path tick (LookAndFeel_V2::getTickShape (6.0f));
+            g.setColour (isEnabled ? findColour (TextButton::buttonOnColourId) : Colours::grey);
+        
+            const float scale = 9.0f;
+            const AffineTransform trans (AffineTransform::scale (w / scale, h / scale)
+                                     .translated (x - 2.5f, y + 1.0f));
+            g.fillPath (tick, trans);
+        }
+    }
+
+    void drawLinearSliderThumb (Graphics& g, int x, int y, int width, int height,
+                                float sliderPos, float minSliderPos, float maxSliderPos,
+                                const Slider::SliderStyle style, Slider& slider) override
+    {
+        const float sliderRadius = (float) (getSliderThumbRadius (slider) - 2);
+
+        bool isDownOrDragging = slider.isEnabled() && (slider.isMouseOverOrDragging() || slider.isMouseButtonDown());
+        Colour knobColour (slider.findColour (Slider::thumbColourId).withMultipliedSaturation ((slider.hasKeyboardFocus (false) || isDownOrDragging) ? 1.3f : 0.9f)
+                           .withMultipliedAlpha (slider.isEnabled() ? 1.0f : 0.7f));
+
+        if (style == Slider::LinearHorizontal || style == Slider::LinearVertical) {
+            float kx, ky;
+        
+            if (style == Slider::LinearVertical) {
+                kx = x + width * 0.5f;
+                ky = sliderPos;
+            } else {
+                kx = sliderPos;
+                ky = y + height * 0.5f;
+            }
+        
+            const float outlineThickness = slider.isEnabled() ? 0.8f : 0.3f;
+        
+            drawRoundThumb (g,
+                            kx - sliderRadius,
+                            ky - sliderRadius,
+                            sliderRadius * 2.0f,
+                            knobColour, outlineThickness);
+        } else {
+            // Just call the base class for the demo
+            LookAndFeel_V2::drawLinearSliderThumb (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
+        }
     }
     
-    const float outlineThickness = slider.isEnabled() ? 0.8f : 0.3f;
-    
-    drawRoundThumb (g,
-                    kx - sliderRadius,
-                    ky - sliderRadius,
-                    sliderRadius * 2.0f,
-                    knobColour, outlineThickness);
-}
-else
-{
-    // Just call the base class for the demo
-    LookAndFeel_V2::drawLinearSliderThumb (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-}
-}
+    void drawLinearSlider (Graphics& g, int x, int y, int width, int height,
+                           float sliderPos, float minSliderPos, float maxSliderPos,
+                           const Slider::SliderStyle style, Slider& slider) override
+    {
+        g.fillAll (slider.findColour (Slider::backgroundColourId));
 
-void drawLinearSlider (Graphics& g, int x, int y, int width, int height,
-                       float sliderPos, float minSliderPos, float maxSliderPos,
-                       const Slider::SliderStyle style, Slider& slider) override
-{
-g.fillAll (slider.findColour (Slider::backgroundColourId));
-
-if (style == Slider::LinearBar || style == Slider::LinearBarVertical)
-{
-    const float fx = (float) x, fy = (float) y, fw = (float) width, fh = (float) height;
-    
-    Path p;
-    
-    if (style == Slider::LinearBarVertical)
-        p.addRectangle (fx, sliderPos, fw, 1.0f + fh - sliderPos);
-        else
-            p.addRectangle (fx, fy, sliderPos - fx, fh);
+        if (style == Slider::LinearBar || style == Slider::LinearBarVertical) {
+            const float fx = (float) x, fy = (float) y, fw = (float) width, fh = (float) height;
             
+            Path p;
             
+            if (style == Slider::LinearBarVertical)
+                p.addRectangle (fx, sliderPos, fw, 1.0f + fh - sliderPos);
+            else
+                p.addRectangle (fx, fy, sliderPos - fx, fh);
+                    
+                    
             Colour baseColour (slider.findColour (Slider::rotarySliderFillColourId)
                                .withMultipliedSaturation (slider.isEnabled() ? 1.0f : 0.5f)
                                .withMultipliedAlpha (0.8f));
@@ -218,82 +196,76 @@ if (style == Slider::LinearBar || style == Slider::LinearBarVertical)
             
             const float lineThickness = jmin (15.0f, jmin (width, height) * 0.45f) * 0.1f;
             g.drawRect (slider.getLocalBounds().toFloat(), lineThickness);
-            }
-else
-{
-    drawLinearSliderBackground (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-    drawLinearSliderThumb (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-}
-}
+        } else {
+            drawLinearSliderBackground (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
+            drawLinearSliderThumb (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
+        }
+    }
 
-void drawLinearSliderBackground (Graphics& g, int x, int y, int width, int height,
-                                 float /*sliderPos*/,
-                                 float /*minSliderPos*/,
-                                 float /*maxSliderPos*/,
-                                 const Slider::SliderStyle /*style*/, Slider& slider) override
-{
-const float sliderRadius = getSliderThumbRadius (slider) - 5.0f;
-Path on, off;
+    void drawLinearSliderBackground (Graphics& g, int x, int y, int width, int height,
+                                     float /*sliderPos*/,
+                                     float /*minSliderPos*/,
+                                     float /*maxSliderPos*/,
+                                     const Slider::SliderStyle /*style*/, Slider& slider) override
+    {
+        const float sliderRadius = getSliderThumbRadius (slider) - 5.0f;
+        Path on, off;
 
-if (slider.isHorizontal())
-{
-    const float iy = y + height * 0.5f - sliderRadius * 0.5f;
-    Rectangle<float> r (x - sliderRadius * 0.5f, iy, width + sliderRadius, sliderRadius);
-    const float onW = r.getWidth() * ((float) slider.valueToProportionOfLength (slider.getValue()));
-    
-    on.addRectangle (r.removeFromLeft (onW));
-    off.addRectangle (r);
-}
-else
-{
-    const float ix = x + width * 0.5f - sliderRadius * 0.5f;
-    Rectangle<float> r (ix, y - sliderRadius * 0.5f, sliderRadius, height + sliderRadius);
-    const float onH = r.getHeight() * ((float) slider.valueToProportionOfLength (slider.getValue()));
-    
-    on.addRectangle (r.removeFromBottom (onH));
-    off.addRectangle (r);
-}
+        if (slider.isHorizontal()) {
+            const float iy = y + height * 0.5f - sliderRadius * 0.5f;
+            Rectangle<float> r (x - sliderRadius * 0.5f, iy, width + sliderRadius, sliderRadius);
+            const float onW = r.getWidth() * ((float) slider.valueToProportionOfLength (slider.getValue()));
+            
+            on.addRectangle (r.removeFromLeft (onW));
+            off.addRectangle (r);
+        } else {
+            const float ix = x + width * 0.5f - sliderRadius * 0.5f;
+            Rectangle<float> r (ix, y - sliderRadius * 0.5f, sliderRadius, height + sliderRadius);
+            const float onH = r.getHeight() * ((float) slider.valueToProportionOfLength (slider.getValue()));
+            
+            on.addRectangle (r.removeFromBottom (onH));
+            off.addRectangle (r);
+        }
 
-g.setColour (slider.findColour (Slider::rotarySliderFillColourId));
-g.fillPath (on);
+        g.setColour (slider.findColour (Slider::rotarySliderFillColourId));
+        g.fillPath (on);
 
-g.setColour (slider.findColour (Slider::trackColourId));
-g.fillPath (off);
-}
+        g.setColour (slider.findColour (Slider::trackColourId));
+        g.fillPath (off);
+    }
 
-void drawRotarySlider (Graphics& g, int x, int y, int width, int height, float sliderPos,
-                       float rotaryStartAngle, float rotaryEndAngle, Slider& slider) override
-{
-const float radius = jmin (width / 2, height / 2) - 2.0f;
-const float centreX = x + width * 0.5f;
-const float centreY = y + height * 0.5f;
-const float rx = centreX - radius;
-const float ry = centreY - radius;
-const float rw = radius * 2.0f;
-const float angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-const bool isMouseOver = slider.isMouseOverOrDragging() && slider.isEnabled();
+    void drawRotarySlider (Graphics& g, int x, int y, int width, int height, float sliderPos,
+                           float rotaryStartAngle, float rotaryEndAngle, Slider& slider) override
+    {
+        const float radius = jmin (width / 2, height / 2) - 2.0f;
+        const float centreX = x + width * 0.5f;
+        const float centreY = y + height * 0.5f;
+        const float rx = centreX - radius;
+        const float ry = centreY - radius;
+        const float rw = radius * 2.0f;
+        const float angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
+        const bool isMouseOver = slider.isMouseOverOrDragging() && slider.isEnabled();
 
-if (slider.isEnabled())
-g.setColour (slider.findColour (Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 1.0f : 0.7f));
-else
-g.setColour (Colour (0x80808080));
+        if (slider.isEnabled()) {
+            g.setColour (slider.findColour (Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 1.0f : 0.7f));
+        } else {
+            g.setColour (Colour (0x80808080));
+        }
 
-{
-    Path filledArc;
-    filledArc.addPieSegment (rx, ry, rw, rw, rotaryStartAngle, angle, 0.0);
-    g.fillPath (filledArc);
-}
+        {
+            Path filledArc;
+            filledArc.addPieSegment (rx, ry, rw, rw, rotaryStartAngle, angle, 0.0);
+            g.fillPath (filledArc);
+        }
 
-{
-    const float lineThickness = jmin (15.0f, jmin (width, height) * 0.45f) * 0.1f;
-    Path outlineArc;
-    outlineArc.addPieSegment (rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
-    g.strokePath (outlineArc, PathStrokeType (lineThickness));
-}
-}
+        {
+            const float lineThickness = jmin (15.0f, jmin (width, height) * 0.45f) * 0.1f;
+            Path outlineArc;
+            outlineArc.addPieSegment (rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
+            g.strokePath (outlineArc, PathStrokeType (lineThickness));
+        }
+    }
 };
-
-
 
 enum SliderType{
     HSlider,
@@ -309,7 +281,26 @@ enum VUMeterType{
     NumDisplay
 };
 
-class uiComponent: public Component, public uiItem, public SettableTooltipClient
+class layoutComponent: public Component
+{
+public:
+    layoutComponent() { }
+    
+    virtual int getRecommendedHeight() = 0;
+    virtual int getRecommendedWidth() = 0;
+    
+    virtual void setRatio() = 0;
+    virtual void setVRatio() = 0;
+    virtual void setHRatio() = 0;
+    virtual float getHRatio() = 0;
+    virtual float getVRatio() = 0;
+    
+    virtual void setLayoutComponentSize(Rectangle<int> r) = 0;
+    
+    virtual void setCompLookAndFeel(LookAndFeel* laf) = 0;
+};
+
+class uiComponent: public layoutComponent, public uiItem, public SettableTooltipClient
 {
 public:
     
@@ -317,13 +308,10 @@ public:
     int recomWidth, recomHeight;
     String fTooltipText;
     
-    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip): uiItem(gui,zone), recomWidth(w), recomHeight(h), fTooltipText(tooltip)
-    {
-        std::cout<<"TOOLTIP : "<<fTooltipText<<std::endl;
-    }
+    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip): uiItem(gui,zone), recomWidth(w), recomHeight(h), fTooltipText(tooltip) { }
     
     // Debug output
-    void setCompSize(Rectangle<int> r){
+    void setLayoutComponentSize(Rectangle<int> r) override{
         std::cout<<"New bounds of Component : {"<<r.toString()<<"}";
         std::cout<<", for parent : "<<getParentComponent()<<", "<<getParentComponent()->getBounds().toString()<<std::endl;
         std::cout<<"Ratios : "<<hRatio<<" "<<vRatio<<", Recommended Size : "<<recomWidth<<"x"<<recomHeight<<std::endl;
@@ -331,40 +319,32 @@ public:
         setTopLeftPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
     }
     
-    float getHRatio(){
-        return hRatio;
+    float getHRatio() override{ return hRatio; }
+    
+    float getVRatio() override{ return vRatio; }
+    
+    int getRecommendedHeight() override{ return recomHeight; }
+    
+    int getRecommendedWidth() override{ return recomWidth; }
+    
+    void setRatio() override{
+        setVRatio();
+        setHRatio();
     }
     
-    float getVRatio(){
-        return vRatio;
+    void setVRatio() override{
+        vRatio = (float)recomHeight/(float)findParentComponentOfClass<layoutComponent>()->getRecommendedHeight();
     }
     
-    int getRecommendedHeight(){
-        return recomHeight;
+    void setHRatio() override{
+        hRatio = (float)recomWidth/(float)findParentComponentOfClass<layoutComponent>()->getRecommendedWidth();
     }
-    
-    int getRecommendedWidth(){
-        return recomWidth;
-    }
-    
-    virtual void setVRatio(float ratio){
-        vRatio = ratio;
-    }
-    
-    virtual void setHRatio(float ratio){
-        hRatio = ratio;
-    }
-    
-    virtual void paint(Graphics& g) = 0;
-    virtual void resized() = 0;
-    virtual void setCompLookAndFeel(LookAndFeel* laf) = 0;
 };
 
 class uiSlider: public uiComponent,
 private juce::Slider::Listener
 {
 private:
-    
     Slider::SliderStyle fStyle;
     Label fLabel;
     String fName;
@@ -376,15 +356,15 @@ private:
 public:
     uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, tooltip), fName(name), fType(type)
     {
-        if (scale == MetaDataUI::kLog) 		{
+        if (scale == MetaDataUI::kLog) {
             fConverter = new LogValueConverter(min, max, min, max);
             fSlider.setSkewFactor(0.5);
-        }
-        else if (scale == MetaDataUI::kExp) {
+        } else if (scale == MetaDataUI::kExp) {
             fConverter = new ExpValueConverter(min, max, min, max);
             fSlider.setSkewFactor(2.0);
+        } else {
+            fConverter = new LinearValueConverter(min, max, min, max);
         }
-        else { fConverter = new LinearValueConverter(min, max, min, max);}
         
         switch(fType){
             case HSlider:
@@ -427,52 +407,50 @@ public:
     }
     
     virtual void paint(Graphics& g) override{
-    g.setColour (Colours::black);
-    if(fType == VSlider || fType == Knob) { g.drawText(fName, getLocalBounds(), Justification::centredTop); }
-    //else if(type == Knob) { g.drawText(sliderName, getLocalBounds(), Justification::centredTop); }
-}
-
-void reflectZone() override
-{
-FAUSTFLOAT v = *fZone;
-fCache = v;
-fSlider.setValue(fConverter->faust2ui(v));
-}
-
-void sliderValueChanged(Slider* slider) override
-{
-float value = slider->getValue();
-std::cout<<fName<<" : "<<value<<std::endl;
-modifyZone(value);
-}
-
-virtual void setCompLookAndFeel(LookAndFeel* laf){
-    fSlider.setLookAndFeel(laf);
-}
-
-virtual void resized() override{
-    std::cout<<fName<<", ";
-    if(fType == HSlider){
-        x = getLocalBounds().reduced(3).getX() + 60; y = getLocalBounds().reduced(3).getY();
-        width = getLocalBounds().reduced(3).getWidth()-60; height = getLocalBounds().reduced(3).getHeight();
+        if(fType == VSlider || fType == Knob) {
+            g.setColour (Colours::black);
+            g.drawText(fName, getLocalBounds(), Justification::centredTop);
+        }
     }
-    else if(fType == NumEntry){
-        width = kNumEntryWidth-10; height = kNumEntryHeight-15;
-        x = (getLocalBounds().reduced(3).getWidth()-width)/2; y = (getLocalBounds().reduced(3).getHeight()-height)/2;
+
+    void reflectZone() override
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+        fSlider.setValue(fConverter->faust2ui(v));
     }
-    else{
-        x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+11;
-        height = getLocalBounds().reduced(3).getHeight()-12; width = getLocalBounds().reduced(3).getWidth();
+
+    void sliderValueChanged(Slider* slider) override
+    {
+        float value = slider->getValue();
+        std::cout<<fName<<" : "<<value<<std::endl;
+        modifyZone(value);
     }
-    fSlider.setBounds(x, y, width, height);
-}
+
+    virtual void setCompLookAndFeel(LookAndFeel* laf) override{
+        fSlider.setLookAndFeel(laf);
+    }
+
+    virtual void resized() override{
+        std::cout<<fName<<", ";
+        if(fType == HSlider) {
+            x = getLocalBounds().reduced(3).getX() + 60; y = getLocalBounds().reduced(3).getY();
+            width = getLocalBounds().reduced(3).getWidth()-60; height = getLocalBounds().reduced(3).getHeight();
+        } else if(fType == NumEntry) {
+            width = kNumEntryWidth-10; height = kNumEntryHeight-15;
+            x = (getLocalBounds().reduced(3).getWidth()-width)/2; y = (getLocalBounds().reduced(3).getHeight()-height)/2;
+        } else {
+            x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+11;
+            height = getLocalBounds().reduced(3).getHeight()-12; width = getLocalBounds().reduced(3).getWidth();
+        }
+        fSlider.setBounds(x, y, width, height);
+    }
 };
 
 class uiButton: public uiComponent,
 private juce::Button::Listener
 {
 private:
-    
     String fName;
     int x, y, width, height;
     TextButton fButton;
@@ -509,13 +487,11 @@ public:
         fCache = v;
     }
     
-    virtual void setCompLookAndFeel(LookAndFeel* laf){
+    virtual void setCompLookAndFeel(LookAndFeel* laf) override{
         fButton.setLookAndFeel(laf);
     }
     
-    virtual void paint(Graphics& g) override
-    {
-    }
+    virtual void paint(Graphics& g) override { }
     
     virtual void resized() override
     {
@@ -530,12 +506,12 @@ public:
 class uiCheckButton: public uiComponent,
 private juce::Button::Listener
 {
-public:
-    
+private:
     String fName;
     int x, y, width, height;
     ToggleButton fCheckButton;
     
+public:
     uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) : uiComponent(gui, zone, w, h, tooltip), fName(label), width(w), height(h)
     {
         x = getLocalBounds().getX() + 10;
@@ -551,7 +527,7 @@ public:
         addAndMakeVisible(fCheckButton);
     }
     
-    void buttonClicked(Button* button)
+    void buttonClicked(Button* button) override
     {
         std::cout<<fName<<" : "<<button->getToggleState()<<std::endl;
         modifyZone(button->getToggleState());
@@ -563,13 +539,11 @@ public:
         fCache = v;
     }
     
-    virtual void setCompLookAndFeel(LookAndFeel* laf){
+    virtual void setCompLookAndFeel(LookAndFeel* laf) override{
         fCheckButton.setLookAndFeel(laf);
     }
     
-    virtual void paint(Graphics& g) override
-    {
-    }
+    virtual void paint(Graphics& g) override { }
     
     virtual void resized() override
     {
@@ -610,7 +584,6 @@ public:
             for (int i = 0; i < names.size(); i++) {
                 double v = values[i];
                 if ( (v >= lo) && (v <= hi) ) {
-                    
                     // It is a valid value : add corresponding menu item
                     fComboBox.addItem(String(names[i].c_str()), v+1);
                     fValues.push_back(v);
@@ -636,7 +609,7 @@ public:
         modifyZone(cb->getSelectedId() - 1);
     }
     
-    virtual void reflectZone()
+    virtual void reflectZone() override
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
@@ -655,15 +628,15 @@ public:
         if (defaultitem > -1) { fComboBox.setSelectedItemIndex(defaultitem); }
     }
     
-    virtual void setCompLookAndFeel(LookAndFeel* laf){
+    virtual void setCompLookAndFeel(LookAndFeel* laf) override{
         fComboBox.setLookAndFeel(laf);
     }
     
-    virtual void resized(){
+    virtual void resized() override{
         fComboBox.setBounds(1, getLocalBounds().getY() + 15, getWidth()-2, height/2);
     }
     
-    virtual void paint(Graphics& g){
+    virtual void paint(Graphics& g) override{
         g.setColour(Colours::black);
         g.drawText(fName, getLocalBounds().withHeight(getLocalBounds().getHeight()/2), Justification::centredTop);
     }
@@ -719,13 +692,13 @@ public:
         }
     }
     
-    void setVRatio(float ratio) override
+    void setVRatio(float ratio)
     {
         if(isVertical){ vRatio = ratio * nbButtons; }
         else{ vRatio = ratio; }
     }
     
-    void setHRatio(float ratio) override
+    void setHRatio(float ratio) 
     {
         if(!isVertical){ hRatio = ratio * nbButtons; }
         else{ hRatio = ratio; }
@@ -756,7 +729,8 @@ public:
     }
     
     virtual void resized(){
-        isVertical ? height = (getLocalBounds().getHeight()-25) / nbButtons : width = getLocalBounds().getWidth() / nbButtons;
+        isVertical ? height = (getLocalBounds().getHeight()-25) / nbButtons
+                   : width = getLocalBounds().getWidth() / nbButtons;
         
         for(int i = 0; i < nbButtons; i++){
             if(isVertical){ fButtons.operator[](i)->setBounds(0, i * height + 25, 100, height); }
@@ -777,12 +751,13 @@ public:
     }
 };
 
-class VUMeter  : public uiComponent, public Timer
+class uiVUMeter  : public uiComponent, public Timer
 {
 public:
-    VUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, VUMeterType style, bool vert)
+    uiVUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, VUMeterType style, bool vert)
     : uiComponent(gui, zone, w, h, tooltip), fMin(mini), fMax(maxi), fStyle(style), fName(label)
     {
+        setOpaque(true);
         fLevel = 0;
         startTimer (50);
         this->fUnit = unit;
@@ -796,32 +771,87 @@ public:
         if(fStyle != Led){ setupTextEditor(); }
     }
     
+    //Moyenne de 60% au repos, ~110% en pic, non saccadé
+    void timerCallback() override
+    {
+        if (isShowing()) {
+            if(fLevel == 0){ forceRepaint = true; } //Force painting at the initialisation
+            else{ forceRepaint = false; }
+            
+            float lastLevel = fLevel; //t-1
+            setLevel(); //t
+            
+            if(db){
+                if(fStyle == VVUMeter) {
+                    if (((int)dB2y(lastLevel) != (int)dB2y(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint){
+                        repaint(); }
+                } else if(fStyle == HVUMeter) {
+                    if (((int)dB2x(lastLevel) != (int)dB2x(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint){ repaint(); }
+                } else if(fStyle == NumDisplay) {
+                    if (((int)lastLevel != (int)fLevel && fLevel >= fMin && fLevel <= fMax) || forceRepaint){ repaint(); }
+                } else if(fStyle == Led) {
+                    // TODO
+                }
+                
+            } else {
+                if(fStyle == VVUMeter){
+                    if (((int)lin2y(lastLevel) != (int)lin2y(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint){ repaint(); }
+                } else if(fStyle == HVUMeter) {
+                    // TODO
+                } else if(fStyle == Led) {
+                    if ((std::abs(lastLevel-fLevel)>0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint){ repaint(); }
+                } else if(fStyle == NumDisplay) {
+                    if (((int)lastLevel != (int)fLevel && fLevel >= fMin && fLevel <= fMax) || forceRepaint){ repaint(); }
+                }
+            }
+        } else {
+            fLevel = 0;
+        }
+    }
+    
+    /* // Moyenne de 60% au repos, ~110% en pic, "saccadé"
     void timerCallback() override
     {
         if (isShowing())
         {
-            setLevel();
-            repaint();
+            float newLevel = (*fZone-fMin)/(fMax-fMin);
+            float level;
+            if(db){ level = (fLevel-fMin)/(fMax-fMin); }
+            else{ level = fLevel; }
+            
+            if ((std::abs (level - newLevel) > 0.01f) || fLevel == 0){
+                if(fLevel == 0){ forceRepaint = true; }
+                else{ forceRepaint = false; }
+                
+                if((newLevel >= 0 && newLevel <= 1) || forceRepaint){
+                    setLevel();
+                    repaint();
+                }
+                else{
+                    fLabel.setText(String((int)*fZone)+fUnit, dontSendNotification);
+                }
+            }
         }
         else
         {
             fLevel = 0;
         }
-    }
+    }*/
     
-    virtual void setCompLookAndFeel(LookAndFeel* laf){ }
+    virtual void setCompLookAndFeel(LookAndFeel* laf) override{ }
     
     void paint (Graphics& g) override
     {
-        if     (fStyle == Led)       { drawLed (g, kLedWidth/2, kLedHeight/2, fLevel); }
-        else if(fStyle == NumDisplay){ drawNumDisplay(g, kNumDisplayWidth, kNumDisplayHeight/2, fLevel); }
-        else if(fStyle == VVUMeter)  { drawVBargraph(g, kVBargraphWidth/2 , getHeight(), fLevel, db); }
-        else                         { drawHBargraph (g, getWidth(), kHBargraphHeight/2, fLevel, db); }
+        g.setColour(Colours::darkgrey);
+        g.fillRect(getLocalBounds());
+        
+        if     (fStyle == Led)       { drawLed       (g, kLedWidth/2,        kLedHeight/2,        fLevel);     }
+        else if(fStyle == NumDisplay){ drawNumDisplay(g, kNumDisplayWidth,   kNumDisplayHeight/2, fLevel);     }
+        else if(fStyle == VVUMeter)  { drawVBargraph (g, kVBargraphWidth/2 , getHeight(),         fLevel, db); }
+        else if(fStyle == HVUMeter)  { drawHBargraph (g, getWidth(),         kHBargraphHeight/2,  fLevel, db); }
     }
     
-    void resized() override{
-        setTextEditorPos();
-    }
+    void resized() override{ setTextEditorPos(); }
     
     void reflectZone() override
     {
@@ -839,10 +869,12 @@ private:
     Label fLabel;
     String fName;
     bool isBargraphNameShown;
+    bool forceRepaint;
     
     void setTextEditorPos(){
         if     (fStyle == VVUMeter)   { fLabel.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20); }
-        else if(fStyle == HVUMeter)   { isBargraphNameShown ? fLabel.setBounds(63, (getHeight()-20)/2, 50, 20) : fLabel.setBounds(3, (getHeight()-20)/2, 50, 20); }
+        else if(fStyle == HVUMeter)   { isBargraphNameShown ? fLabel.setBounds(63, (getHeight()-20)/2, 50, 20)
+                                                            : fLabel.setBounds(3,  (getHeight()-20)/2, 50, 20); }
         else if(fStyle == NumDisplay) { fLabel.setBounds(getLocalBounds().getX(), getLocalBounds().getY(), jmax(1,jmin(kNumDisplayWidth, getWidth()))-2, jmax(1,jmin(kNumDisplayHeight/2, getHeight()))-2); }
         // LED Label ?
     }
@@ -867,8 +899,7 @@ private:
             // VUMeter Name
             g.setColour(Colours::black);
             g.drawText(fName, 0, y, 60, height, Justification::centredRight);
-        }
-        else{
+        } else {
             x = 60;
             width -= x;
         }
@@ -885,7 +916,8 @@ private:
         g.setColour(Colours::white.withAlpha(0.8f));
         g.fillRect((int)x-57, (getHeight()-20)/2, 50, 20);
         
-        dB ? drawHBargraphDB(g, y, height, level) : drawHBargraphLin(g, x, y, width, height, level);
+        dB ? drawHBargraphDB (g, y, height, level)
+           : drawHBargraphLin(g, x, y, width, height, level);
     }
     
     void drawHBargraphDB(Graphics& g, int y, int height, float level){
@@ -947,8 +979,9 @@ private:
             // VUMeter Name
             g.setColour(Colours::black);
             g.drawText(fName, getLocalBounds(), Justification::centredTop);
+        } else {
+            y = (float) getLocalBounds().getHeight()-height; height -= 25;
         }
-        else{ y = (float) getLocalBounds().getHeight()-height; height -= 25; }
         
         // VUMeter Background
         g.setColour(Colours::lightgrey);
@@ -962,7 +995,8 @@ private:
         g.setColour(Colours::white.withAlpha(0.8f));
         g.fillRect(jmax((getWidth()-48)/2, 1), getHeight()-22, jmin(getWidth()-2, 48), 20);
         
-        dB ? drawVBargraphDB(g, x, width, level) : drawVBargraphLin(g, x, width, level);
+        dB ? drawVBargraphDB (g, x, width, level)
+           : drawVBargraphLin(g, x, width, level);
     }
     
     void drawVBargraphDB(Graphics& g, int x, int width, float level){
@@ -1004,12 +1038,12 @@ private:
         g.setColour(c.brighter());
         g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.2f)), (float) width-2, lin2y(fMin)-jmax(lin2y(level), lin2y(0.2f)));
         
-        if(level > 0.2f){
+        if(level > 0.2f) {
             g.setColour(c);
             g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.9f)), (float) width-2, lin2y(0.2f)-jmax(lin2y(level), lin2y(0.9f)));
         }
         
-        if(level > 0.9f){
+        if(level > 0.9f) {
             g.setColour(c.darker());
             g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(fMax)), (float) width-2, lin2y(0.9)-jmax(lin2y(level), lin2y(fMax)));
         }
@@ -1022,7 +1056,8 @@ private:
         float y = (float) (getLocalBounds().getHeight() - height)/2;
         g.setColour(Colours::black);
         g.fillEllipse(x, y, width, height);
-        if(db){
+        
+        if(db) {
             int alpha = 200;
             g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
             if(dB2Scale(level) > dB2Scale(-10)){ g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha)); }
@@ -1031,8 +1066,7 @@ private:
             if(dB2Scale(level) > dB2Scale(0))  { g.setColour(Colour((uint8)240, (uint8)0,   (uint8)20, (uint8)alpha)); }
             
             g.fillEllipse(x+1, y+1, width-2, height-2);
-        }
-        else{
+        } else {
             g.setColour(Colours::red.withAlpha((float)level));
             g.fillEllipse(x+1, y+1, width-2, height-2);
         }
@@ -1075,18 +1109,29 @@ private:
         FAUSTFLOAT s0 = fScaleMin;
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
+        
         int h;
         int treshold;
-        if(isBargraphNameShown){ h = getHeight()-42; treshold = 16; }
-        else{ h = getHeight()-27; treshold = 1; }
+        
+        if(isBargraphNameShown) {
+            h = getHeight()-42; treshold = 16;
+        } else {
+            h = getHeight()-27; treshold = 1;
+        }
+        
         return (h - h*(s0-sx)/(s0-s1)) + treshold;
     }
     
     float lin2y(float level){
         int h;
         int treshold;
-        if(isBargraphNameShown){ h = getHeight()-32; treshold = 16; }
-        else{ h = getHeight()-27; treshold = 1; }
+        
+        if(isBargraphNameShown) {
+            h = getHeight()-32; treshold = 16;
+        } else {
+            h = getHeight()-27; treshold = 1;
+        }
+        
         return h * (1 - level) + treshold;
     }
     
@@ -1095,10 +1140,16 @@ private:
         FAUSTFLOAT s0 = fScaleMin;
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
+        
         int w;
         int treshold;
-        if(isBargraphNameShown){ w = getWidth()-122; treshold = 120; }
-        else{ w = getWidth()-62; treshold = 60; }
+        
+        if(isBargraphNameShown){
+            w = getWidth()-122; treshold = 120;
+        } else {
+            w = getWidth()-62; treshold = 60;
+        }
+        
         return treshold + w - w*(s1-sx)/(s1-s0)+1;
     }
     
@@ -1108,8 +1159,7 @@ private:
         if(fStyle == VVUMeter){
             r = Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2, dB2y(num)-10, (kVBargraphWidth/2)-2, 20);
             g.drawText(String(num), r, Justification::centredRight, false);
-        }
-        else {
+        } else {
             r = Rectangle<int>(dB2x(num)-10,(getHeight()-kHBargraphHeight/2)/2 +1, 20, (kHBargraphHeight/2)-2);
             g.drawText(String(num), r, Justification::centredTop, false);
         }
@@ -1118,14 +1168,13 @@ private:
     void setLevel(){
         float rawLevel = *fZone;
         
-        if(db){
+        if(db) {
             fLevel = rawLevel;
-            if(fLevel > fMax)     { fLevel = fMax; }
+            if     (fLevel > fMax){ fLevel = fMax; }
             else if(fLevel < fMin){ fLevel = fMin; }
-        }
-        else{
+        } else {
             fLevel = (rawLevel-fMin)/(fMax-fMin);
-            if(fLevel > 1)       { fLevel = 1; }
+            if     (fLevel > 1)  { fLevel = 1; }
             else if(fLevel < 0)  { fLevel = 0; }
         }
         
@@ -1136,7 +1185,7 @@ private:
 
 
 
-class faustBox : public Component
+class faustBox : public layoutComponent
 {
 public:
     
@@ -1147,43 +1196,43 @@ public:
         if(fOrder == 0){ hRatio = 1; vRatio = 1; }
     }
     
-    void setChildLookAndFeel(LookAndFeel* laf){
+    void setCompLookAndFeel(LookAndFeel* laf) override{
         for(int i = 0; i<getNumChildComponents(); i++){
-            if(dynamic_cast<uiComponent*> (getChildComponent(i)) != nullptr)
-                dynamic_cast<uiComponent*> (getChildComponent(i))->setCompLookAndFeel(laf);
-            else{
-                dynamic_cast<faustBox*>(getChildComponent(i))->setChildLookAndFeel(laf);
-            }
+            dynamic_cast<layoutComponent*> (getChildComponent(i))->setCompLookAndFeel(laf);
         }
     }
     
-    void setHRatio(){
+    int getRecommendedWidth() override{ return recommendedWidth; }
+    int getRecommendedHeight() override{ return recommendedHeight; }
+    
+    float getHRatio() override{ return hRatio; }
+    float getVRatio() override{ return vRatio; }
+    
+    void setHRatio() override{
         if(findParentComponentOfClass<faustBox>() != nullptr){
             hRatio = (float)recommendedWidth/(float)findParentComponentOfClass<faustBox>()->recommendedWidth;
         }
     }
     
-    void setVRatio(){
+    void setVRatio() override{
         if(findParentComponentOfClass<faustBox>() != nullptr){
             vRatio = (float)recommendedHeight/(float)findParentComponentOfClass<faustBox>()->recommendedHeight;
         }
     }
     
-    void setBoxSize(Rectangle<int> r){
+    void setLayoutComponentSize(Rectangle<int> r) override{
         
         rect.setSize(r.getWidth(), r.getHeight());
         Component::setSize(r.getWidth(), r.getHeight());
         
-        if(findParentComponentOfClass<faustBox>() != nullptr){
+        if(findParentComponentOfClass<faustBox>() != nullptr) {
             rect.setPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
             setTopLeftPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
-        }
-        else{
-            if(tabLayout){
+        } else {
+            if(tabLayout) {
                 rect.setPosition(r.getX()+1, r.getY()+30);
                 setTopLeftPosition(r.getX()+1, r.getY()+30);
-            }
-            else{
+            } else {
                 rect.setPosition(r.getX(), r.getY());
                 setTopLeftPosition(r.getX(), r.getY());
             }
@@ -1193,34 +1242,20 @@ public:
     void layoutComponents()
     {
         for(int i = 0; i<getNumChildComponents(); i++){
-            uiComponent* tempComp = dynamic_cast<uiComponent*>(getChildComponent(i));
-            if(tempComp != 0){
-                if(isVertical){
-                    tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
-                    tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
-                    int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                    if(!(fName.startsWith("0x")) && fName.isNotEmpty() && i == 0){ tempComp->setCompSize(rect.removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ tempComp->setCompSize(rect.removeFromTop(heightToRemove).reduced(3)); }
+            layoutComponent* tempComp = dynamic_cast<layoutComponent*>(getChildComponent(i));
+            if(isVertical){
+                int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
+                if(!(fName.startsWith("0x")) && fName.isNotEmpty() && i == 0){
+                    tempComp->setLayoutComponentSize(rect.removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3));
+                } else {
+                    tempComp->setLayoutComponentSize(rect.removeFromTop(heightToRemove).reduced(3));
                 }
-                else{
-                    tempComp->setVRatio((float)tempComp->getRecommendedHeight()/(float)recommendedHeight);
-                    tempComp->setHRatio((float)tempComp->getRecommendedWidth()/(float)recommendedWidth);
-                    int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                    if(!(fName.startsWith("0x")) && fName.isNotEmpty()){ tempComp->setCompSize(rect.removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ tempComp->setCompSize(rect.removeFromLeft(widthToRemove).reduced(3)); }
-                }
-            }
-            else{
-                faustBox* tempBox = dynamic_cast<faustBox*>(getChildComponent(i));
-                if(isVertical){
-                    int heightToRemove = getSpaceToRemove(tempBox->vRatio);
-                    if(!(fName.startsWith("0x")) && fName.isNotEmpty() && i == 0){ tempBox->setBoxSize(rect.removeFromTop(heightToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ tempBox->setBoxSize(rect.removeFromTop(heightToRemove).reduced(3)); }
-                }
-                else{
-                    int widthToRemove = getSpaceToRemove(tempBox->hRatio);
-                    if(!(fName.startsWith("0x")) && fName.isNotEmpty()){ tempBox->setBoxSize(rect.removeFromLeft(widthToRemove).withTrimmedTop(11).reduced(3)); }
-                    else{ tempBox->setBoxSize(rect.removeFromLeft(widthToRemove).reduced(3)); }
+            } else {
+                int WidthToRemove = getSpaceToRemove(tempComp->getHRatio());
+                if(!(fName.startsWith("0x")) && fName.isNotEmpty()){
+                    tempComp->setLayoutComponentSize(rect.removeFromLeft(WidthToRemove).withTrimmedTop(11).reduced(3));
+                } else {
+                    tempComp->setLayoutComponentSize(rect.removeFromLeft(WidthToRemove).reduced(3));
                 }
             }
         }
@@ -1243,25 +1278,23 @@ public:
     }
     
     int getSpaceToRemove(float ratio){
-        if(isVertical){ return floor((float)getBounds().getHeight()*ratio); }
-        else{ return floor((float)getBounds().getWidth()*ratio); }
+        if(isVertical) {
+            return floor((float)getBounds().getHeight()*ratio);
+        } else {
+            return floor((float)getBounds().getWidth()*ratio);
+        }
     }
     
-    void addChildBox(faustBox* box){
-        addAndMakeVisible(box);
-    }
+    void addChildBox(faustBox* box){ addAndMakeVisible(box); }
     
-    void addChildUiComponent(uiComponent* comp){
-        addAndMakeVisible(comp);
-    }
+    void addChildUiComponent(uiComponent* comp){ addAndMakeVisible(comp); }
     
-    void calculRecommendedSize(){
+    void calculRecommendedSize() {
         for(int j = 0; j<getNumChildComponents(); j++){
             if(isVertical){
                 recommendedHeight += (getChildComponent(j)->Component::getHeight());
                 recommendedWidth   = jmax(recommendedWidth, getChildComponent(j)->Component::getWidth());
-            }
-            else{
+            } else {
                 recommendedWidth += (getChildComponent(j)->Component::getWidth());
                 recommendedHeight = jmax(recommendedHeight, getChildComponent(j)->Component::getHeight());
             }
@@ -1269,16 +1302,16 @@ public:
         Component::setSize(recommendedWidth, recommendedHeight);
     }
     
-    void setRatio(){
+    void setRatio() override{
         setHRatio();
         setVRatio();
         for(int i = 0; i<getNumChildComponents(); i++){
-            if(dynamic_cast<faustBox*>(getChildComponent(i)) != nullptr){ dynamic_cast<faustBox*>(getChildComponent(i))->setRatio(); }
+            dynamic_cast<layoutComponent*>(getChildComponent(i))->setRatio();
         }
     }
     
     void resized() override{
-        setBoxSize(getLocalBounds());
+        setLayoutComponentSize(getLocalBounds());
         layoutComponents();
         writeBox();
     }
@@ -1286,13 +1319,14 @@ public:
     void paint(Graphics& g) override
     {
         
-         Colour col;
-         if      (fOrder == 3){ col = Colours::white;}
-         else if (fOrder == 2){ col = Colours::lightgrey;}
-         else if (fOrder == 1){ col = Colours::grey; }
-         else if (fOrder == 0){ col = Colours::darkgrey; }
-         g.setColour(col);
-         g.fillRect(getLocalBounds());
+        Colour col = Colours::darkgrey;
+        /* // Debug coloring for boxes
+        if      (fOrder == 3){ col = Colours::white;}
+        else if (fOrder == 2){ col = Colours::lightgrey;}
+        else if (fOrder == 1){ col = Colours::grey; }
+        else if (fOrder == 0){ col = Colours::darkgrey; }*/
+        g.setColour(col);
+        g.fillRect(getLocalBounds());
         
         g.setColour(Colours::black);
         if(!fName.startsWith("0x")){ g.drawText(fName, getLocalBounds() .withHeight(10), Justification::centred); }
@@ -1302,8 +1336,9 @@ public:
         int numChild = getNumChildComponents();
         std::cout<<"order : "<<fOrder<<", numChilds : "<<numChild<<std::endl;
         for(int i = numChild-1; i>=0; i--){
-            if(dynamic_cast<faustBox*> (getChildComponent(i)) != nullptr)
+            if(dynamic_cast<faustBox*> (getChildComponent(i)) != nullptr) {
                 delete dynamic_cast<faustBox*> (getChildComponent(i));
+            }
         }
     }
     
@@ -1317,8 +1352,7 @@ public:
 };
 
 
-
-
+    
 class Faust_tabs  : public TabbedComponent
 {
 public:
@@ -1332,7 +1366,7 @@ public:
     void init(){
         for(int i = 0; i < getNumTabs(); i++){
             dynamic_cast<faustBox*>(getTabContentComponent(i))->setRatio();
-            dynamic_cast<faustBox*>(getTabContentComponent(i))->setLookAndFeel(laf);
+            dynamic_cast<faustBox*>(getTabContentComponent(i))->setCompLookAndFeel(laf);
             recommendedHeight = jmax(recommendedHeight, dynamic_cast<faustBox*>(getTabContentComponent(i))->recommendedHeight);
             recommendedWidth = jmax(recommendedWidth, dynamic_cast<faustBox*>(getTabContentComponent(i))->recommendedWidth);
         }
@@ -1347,8 +1381,9 @@ public:
         TabbedComponent::addTab(label, Colours::darkgrey, comp, true);
         for(int i = 0; i<getNumChildComponents(); i++){
             faustBox* box = dynamic_cast<faustBox*>(getChildComponent(i));
-            if(box !=0)
+            if(box !=0) {
                 std::cout<<"childs : "<<box->fName<<", ";
+            }
         }
         std::cout<<std::endl;
     }
@@ -1361,21 +1396,21 @@ public:
 
 
 
-struct Juce_GUI: public GUI, public MetaDataUI, public Component
+class Juce_GUI: public GUI, public MetaDataUI, public Component
 {
+public:
     Juce_GUI()
     {
         order = 0;
         radioGroup = 0;
     }
     
-    void setSize(Rectangle<int> r){
-        window = r;
-    }
-    
     Rectangle<int> getSize(){
-        if(!tabLayout){ return Rectangle<int>(0, 0, dynamic_cast<faustBox*>(getChildComponent(0))->recommendedWidth, dynamic_cast<faustBox*>(getChildComponent(0))->recommendedHeight); }
-        else{ return Rectangle<int>(0, 0, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedWidth, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedHeight+30); }
+        if(!tabLayout){
+            return Rectangle<int>(0, 0, dynamic_cast<faustBox*>(getChildComponent(0))->recommendedWidth, dynamic_cast<faustBox*>(getChildComponent(0))->recommendedHeight);
+        } else {
+            return Rectangle<int>(0, 0, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedWidth, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedHeight+30);
+        }
     }
 
     virtual void openTabBox(const char* label){
@@ -1388,8 +1423,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
             currentBox = new faustBox(true,    String(label), order, tabLayout);
             parentBox = nullptr;
             if(!tabLayout){ addAndMakeVisible(currentBox); }
-        }
-        else{
+        } else {
             parentBox = currentBox;
             currentBox = new faustBox(true, String(label), order, tabLayout);
             parentBox->addChildBox(currentBox);
@@ -1404,8 +1438,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
             currentBox = new faustBox(false, String(label), order, tabLayout);
             parentBox = nullptr;
             if(!tabLayout){ addAndMakeVisible(currentBox); }
-        }
-        else{
+        } else {
             parentBox = currentBox;
             currentBox = new faustBox(false, String(label), order, tabLayout);
             parentBox->addChildBox(currentBox);
@@ -1417,9 +1450,9 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
 
     virtual void closeBox(){
         order--;
-        if(currentBox != nullptr)
+        //if(currentBox != nullptr)
             currentBox->calculRecommendedSize();
-        if(dynamic_cast<faustBox*>(currentBox->getParentComponent()) != 0){
+        if(dynamic_cast<faustBox*>(currentBox->getParentComponent()) != 0) {
             currentBox = parentBox;
             parentBox = currentBox->findParentComponentOfClass<faustBox>(); // Return comp parent of type 'faustBox'
         }
@@ -1428,20 +1461,26 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
             tabs.addTabs(tabName, currentBox);
             tabName.clear();
             addAndMakeVisible(tabs);
+        } else if(tabLayout && order == -1) {
+            init();
+        } else if(!tabLayout && order == 0) {
+        	init();
         }
     }
 
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        if(isKnob(zone)){ addKnob(label, zone, init, min, max, step); }
-        else if(isRadio(zone)){ addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), false); }
-        else if(isMenu(zone)){ addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str()); }
-        else{
-            if(currentBox->isVertical){
+        if(isKnob(zone)){
+            addKnob(label, zone, init, min, max, step);
+        } else if(isRadio(zone)){
+            addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), false);
+        } else if(isMenu(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
+        } else {
+            if(currentBox->isVertical) {
                 currentBox->recommendedHeight   += kHSliderHeight;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHSliderWidth);
-            }
-            else{
+            } else {
                 currentBox->recommendedWidth    += kHSliderWidth;
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHSliderHeight);
             }
@@ -1451,15 +1490,17 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
     
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){
-        if(isKnob(zone)){ addKnob(label, zone, init, min, max, step); }
-        else if(isRadio(zone)){ addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), true); }
-        else if(isMenu(zone)){ addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str()); }
-        else{
-            if(currentBox->isVertical){
+        if(isKnob(zone)){
+            addKnob(label, zone, init, min, max, step);
+        } else if(isRadio(zone)) {
+            addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), true);
+        } else if(isMenu(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
+        } else {
+            if(currentBox->isVertical) {
                 currentBox->recommendedHeight   += kVSliderHeight;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kVSliderWidth);
-            }
-            else{
+            } else {
                 currentBox->recommendedWidth    += kVSliderWidth;
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVSliderHeight);
             }
@@ -1470,11 +1511,10 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
     
     void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr){
-        if(currentBox->isVertical){
+        if(currentBox->isVertical) {
             currentBox->recommendedHeight   += kMenuHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kMenuWidth);
-        }
-        else{
+        } else {
             currentBox->recommendedWidth    += kMenuWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kMenuHeight);
         }
@@ -1489,40 +1529,36 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
         int nbButtons = names.size();
         radioGroup++;
         
-        if(currentBox->isVertical){
+        if(currentBox->isVertical) {
             if(vert){
                 currentBox->recommendedHeight   += nbButtons * (kRadioButtonHeight - 25) + 25;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kCheckButtonWidth);
-            }
-            else{
+            } else {
                 currentBox->recommendedHeight   += kRadioButtonHeight;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, nbButtons * kCheckButtonWidth);
             }
-        }
-        else{
+        } else {
             if(vert){
                 currentBox->recommendedWidth    += kCheckButtonWidth;
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, nbButtons * (kRadioButtonHeight - 25) + 25);
-            }
-            else{
+            } else {
                 currentBox->recommendedWidth    += nbButtons * kCheckButtonWidth;
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kRadioButtonHeight);
             }
         }
         
-        if(vert){ currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, nbButtons * (kRadioButtonHeight - 25) + 25, init, min, max, true, names, values, String(fTooltip[zone]), mdescr, radioGroup));
-        }
-        else{
+        if(vert){
+            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, nbButtons * (kRadioButtonHeight - 25) + 25, init, min, max, true, names, values, String(fTooltip[zone]), mdescr, radioGroup));
+        } else {
             currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, init, min, max, false, names, values, String(fTooltip[zone]), mdescr, radioGroup));
         }
     }
     
     void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){
-        if(currentBox->isVertical){
+        if(currentBox->isVertical) {
             currentBox->recommendedHeight   += kKnobHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kKnobWidth);
-        }
-        else{
+        } else {
             currentBox->recommendedWidth    += kKnobWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kKnobHeight);
         }
@@ -1532,11 +1568,10 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone){
-        if(currentBox->isVertical){
+        if(currentBox->isVertical) {
             currentBox->recommendedHeight   += kButtonHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kButtonWidth);
-        }
-        else{
+        } else {
             currentBox->recommendedWidth    += kButtonWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kButtonHeight);
         }
@@ -1546,11 +1581,10 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     }
 
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone){
-        if(currentBox->isVertical){
+        if(currentBox->isVertical) {
             currentBox->recommendedHeight   += kCheckButtonHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kCheckButtonWidth);
-        }
-        else{
+        } else {
             currentBox->recommendedWidth    += kCheckButtonWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kCheckButtonHeight);
         }
@@ -1563,8 +1597,7 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
         if(currentBox->isVertical){
             currentBox->recommendedHeight   += kNumEntryHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kNumEntryWidth);
-        }
-        else{
+        } else {
             currentBox->recommendedWidth    += kNumEntryWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kNumEntryHeight);
         }
@@ -1575,35 +1608,39 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
 
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
-        if(isLed(zone)){ addLed(String(label), zone, min, max); }
-        else if(isNumerical(zone)){ addNumericalDisplay(String(label), zone, min, max); }
-        else{
+        if(isLed(zone)) {
+            addLed(String(label), zone, min, max);
+        } else if(isNumerical(zone)) {
+            addNumericalDisplay(String(label), zone, min, max);
+        } else {
             if(currentBox->isVertical){
                 currentBox->recommendedHeight   += kHBargraphHeight;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHBargraphWidth);
-            }
-            else{
+            } else {
                 currentBox->recommendedWidth    += kHBargraphWidth;
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHBargraphHeight);
             }
-            currentBox->addChildUiComponent(new VUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), HVUMeter, false));
+            
+            currentBox->addChildUiComponent(new uiVUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), HVUMeter, false));
         }
     }
     
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
-        if(isLed(zone)){ addLed(String(label), zone, min, max); }
-        else if(isNumerical(zone)){ addNumericalDisplay(String(label), zone, min, max); }
-        else{
+        if(isLed(zone)){
+            addLed(String(label), zone, min, max);
+        } else if(isNumerical(zone)) {
+            addNumericalDisplay(String(label), zone, min, max);
+        } else {
             if(currentBox->isVertical){
                 currentBox->recommendedHeight   += kVBargraphHeight;
                 currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kVBargraphWidth);
-            }
-            else{
+            } else {
                 currentBox->recommendedWidth    += kVBargraphWidth;
                 currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVBargraphHeight);
             }
-            currentBox->addChildUiComponent(new VUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), VVUMeter, true));
+            
+            currentBox->addChildUiComponent(new uiVUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), VVUMeter, true));
         }
     }
     
@@ -1611,26 +1648,24 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
         if(currentBox->isVertical){
             currentBox->recommendedHeight   += kLedHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kLedWidth);
-        }
-        else{
+        } else {
             currentBox->recommendedWidth    += kLedWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kLedHeight);
         }
         
-        currentBox->addChildUiComponent(new VUMeter (this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), Led, false));
+        currentBox->addChildUiComponent(new uiVUMeter (this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), Led, false));
     }
     
     void addNumericalDisplay(String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max){
         if(currentBox->isVertical){
             currentBox->recommendedHeight   += kNumDisplayHeight;
             currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kNumDisplayWidth);
-        }
-        else{
+        } else {
             currentBox->recommendedWidth    += kNumDisplayWidth;
             currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kNumDisplayHeight);
         }
         
-        currentBox->addChildUiComponent(new VUMeter (this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), NumDisplay, false));
+        currentBox->addChildUiComponent(new uiVUMeter (this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), NumDisplay, false));
     }
     
 
@@ -1642,25 +1677,26 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     void init(){
         if(tabLayout){
             tabs.init();
-        }
-        else{
+        } else {
             dynamic_cast<faustBox*> (getChildComponent(0))->setRatio();
-            dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds());
-            dynamic_cast<faustBox*> (getChildComponent(0))->setChildLookAndFeel(laf);
+            dynamic_cast<faustBox*> (getChildComponent(0))->setLayoutComponentSize(getLocalBounds());
+            dynamic_cast<faustBox*> (getChildComponent(0))->setCompLookAndFeel(laf);
         }
     }
     
     void resized(){
-        if(tabLayout){ tabs.setBounds(getLocalBounds()); }
-        else{ dynamic_cast<faustBox*> (getChildComponent(0))->setBoxSize(getLocalBounds()); }
+        if(tabLayout) {
+            tabs.setBounds(getLocalBounds());
+        } else {
+            dynamic_cast<faustBox*> (getChildComponent(0))->setLayoutComponentSize(getLocalBounds());
+        }
     }
     
     ~Juce_GUI(){
         std::cout<<std::endl<<"Destructing boxes"<<std::endl;
         
         delete currentBox;
-        if(parentBox != nullptr)
-            delete parentBox;
+        delete parentBox;
     }
     
     int order;
@@ -1671,8 +1707,4 @@ struct Juce_GUI: public GUI, public MetaDataUI, public Component
     Faust_tabs tabs;
     String tabName;
     ScopedPointer<LookAndFeel> laf = new CustomLookAndFeel();
-
-    Rectangle<int> window;
 };
-
-#endif

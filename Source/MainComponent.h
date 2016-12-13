@@ -11,7 +11,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "Juce_GUI.h"
+#include "faust/gui/Juce_GUI.h"
 
 // Select here the compiled DSP that you want to execute
 //#include "DSP files/noise.h"                  //OK
@@ -23,7 +23,7 @@
 //#include "DSP Files/karplus_synth.h"          //OK
 //#include "DSP Files/karplus32bis.h"           //OK
 //#include "DSP Files/UITester.h"               //OK
-//#include "DSP Files/cubic_distortion.h"       //OK
+#include "DSP Files/cubic_distortion.h"       //OK
 //#include "DSP Files/cubic_distortion-NumDisplay.h"   //OK
 //#include "DSP Files/cubic_distortion-LED.h"   //OK
 //#include "DSP Files/cubic_distortion-Horiz.cpp" //OK
@@ -108,7 +108,7 @@ public:
     void resized() override
     {
         std::cout<<std::endl<<"RESIZING"<<std::endl<<std::endl;
-        juceGUI.setSize(getLocalBounds());
+        //juceGUI.setLayoutComponenSize(getLocalBounds());
         juceGUI.setBounds(getLocalBounds());
     }
 
